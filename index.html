@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🚀 منصة التداول - الاستثمار بالـ BNB</title>
+    <title>🚀 منصة التداول - الاستثمار بالعملات الرقمية</title>
     <script src="https://cdn.tailwindcss.com">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js">
@@ -126,7 +126,6 @@
             border-radius: 12px;
             transition: all 0.2s;
             font-weight: 600;
-            cursor: pointer;
         }
         .btn-ghost:hover {
             background: rgba(255, 255, 255, 0.1);
@@ -247,6 +246,11 @@
             color: #fff;
             box-shadow: 0 0 20px rgba(245, 87, 108, 0.3);
         }
+        .disabled-section {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(0.6);
+        }
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -291,21 +295,6 @@
                 opacity: 1;
             }
         }
-        .token-add-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #a0aec0;
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .token-add-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #4facfe;
-            color: #fff;
-        }
     </style>
 </head>
 <body>
@@ -322,7 +311,7 @@
                         </div>
                         <div>
                             <h1 class="text-xl md:text-2xl font-extrabold text-white">منصة التداول</h1>
-                            <p class="text-xs text-white/50">الاستثمار بالـ BNB</p>
+                            <p class="text-xs text-white/50">الاستثمار بالعملات الرقمية الجديدة</p>
                         </div>
                     </div>
                     <div id="wallet-section" class="flex items-center gap-3">
@@ -389,7 +378,7 @@
                 </div>
                 <div class="mt-4">
                     <p class="text-2xl font-bold text-white" id="timeRemaining">--:--:--</p>
-                    <p class="text-sm text-white/40">الوقت المتبقي للـ 1000%</p>
+                    <p class="text-sm text-white/40">الوقت المتبقي حتى الساعة 8 مساءً</p>
                 </div>
             </div>
         </div>
@@ -400,20 +389,22 @@
             <div class="card-modern p-6">
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-xl font-bold text-white">🟢 شراء العملة الاستثمارية</h3>
-                    <span class="text-xs bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full font-bold border border-blue-500/20">الحد الأدنى: 0.01 BNB</span>
+                    <!-- ✅ تم التعديل هنا: 0.01 -> 0.001 -->
+                    <span class="text-xs bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full font-bold border border-blue-500/20">الحد الأدنى: 0.001 BNB</span>
                 </div>
                 <div class="space-y-5">
                     <div>
                         <label class="block text-sm font-medium text-white/50 mb-2">المبلغ (BNB)</label>
+                        <!-- ✅ تم التعديل هنا: min="0.01" -> min="0.001" -->
                         <input type="number" id="buyAmount" placeholder="أدخل المبلغ بالـ BNB..."
-                        class="input-modern" min="0.01" step="0.001" />
+                        class="input-modern" min="0.001" step="0.001" />
                     </div>
                     <div class="flex flex-wrap gap-2">
+                        <button onclick="setBuyAmount(0.001)" class="btn-ghost text-sm">0.001 BNB</button>
+                        <button onclick="setBuyAmount(0.005)" class="btn-ghost text-sm">0.005 BNB</button>
                         <button onclick="setBuyAmount(0.01)" class="btn-ghost text-sm">0.01 BNB</button>
                         <button onclick="setBuyAmount(0.05)" class="btn-ghost text-sm">0.05 BNB</button>
                         <button onclick="setBuyAmount(0.1)" class="btn-ghost text-sm">0.1 BNB</button>
-                        <button onclick="setBuyAmount(0.5)" class="btn-ghost text-sm">0.5 BNB</button>
-                        <button onclick="setBuyAmount(1)" class="btn-ghost text-sm">1 BNB</button>
                     </div>
                     <div class="glass p-4 rounded-2xl border border-white/5">
                         <div class="flex justify-between text-sm">
@@ -435,7 +426,7 @@
             <div class="card-modern p-6">
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-xl font-bold text-white">🔴 بيع العملة الاستثمارية</h3>
-                    <span class="text-xs bg-green-500/20 text-green-300 px-3 py-1 rounded-full font-bold border border-green-500/20">بدون رسوم</span>
+                    <span class="text-xs bg-green-500/20 text-green-300 px-3 py-1 rounded-full font-bold border border-green-500/20">متاح بعد 24 ساعة</span>
                 </div>
                 <div class="space-y-4">
                     <div class="glass p-4 rounded-2xl border border-white/5 space-y-2">
@@ -545,9 +536,10 @@
     // ============================================
     let provider, signer;
     let userAddress = null;
-    let investmentBalance = 0;
-    let purchaseTime = null;
+    let investmentBalance = 0; // رصيد العملة الاستثمارية (محاكاة)
+    let purchaseTime = null; // وقت الشراء (timestamp)
     let profitPercent = 0;
+    let isSellAvailable = false;
 
     // ============================================
     //  دوال المساعدة
@@ -566,15 +558,18 @@
     }
 
     // ============================================
-    //  حساب وقت الساعة 8 مساءً بتوقيت السعودية (UTC+3)
+    //  حساب وقت الساعة 8 مساءً بتوقيت السعودية
     // ============================================
     function getNext8PM() {
         const now = new Date();
+        // توقيت السعودية هو UTC+3
         const saudiTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
         const year = saudiTime.getFullYear();
         const month = saudiTime.getMonth();
         const day = saudiTime.getDate();
-        let target = new Date(Date.UTC(year, month, day, 20 - 3, 0, 0));
+        // الساعة 8 مساءً = 20:00:00
+        let target = new Date(Date.UTC(year, month, day, 20 - 3, 0, 0)); // UTC adjustment
+        // إذا كانت الساعة الحالية في السعودية >= 20:00، ننتقل إلى اليوم التالي
         const currentSaudiHours = saudiTime.getHours();
         if (currentSaudiHours >= 20) {
             target = new Date(Date.UTC(year, month, day + 1, 20 - 3, 0, 0));
@@ -591,6 +586,7 @@
         const now = Date.now();
         let diff = target8PM - now;
         if (diff <= 0) {
+            // إذا انتهى الوقت، نعيد تعيين الهدف إلى الغد
             target8PM = getNext8PM();
             diff = target8PM - now;
         }
@@ -636,7 +632,7 @@
     }
 
     // ============================================
-    //  تخزين واسترجاع البيانات (localStorage)
+    //  تخزين واسترجاع البيانات
     // ============================================
     function saveData() {
         if (userAddress) {
@@ -669,16 +665,16 @@
     async function loadAllData() {
         if (!userAddress) return;
         try {
-            // 1. رصيد BNB الحقيقي
+            // رصيد BNB الحقيقي
             const bnbBalanceWei = await provider.getBalance(userAddress);
             const bnbBalance = ethers.utils.formatEther(bnbBalanceWei);
             document.getElementById('bnbBalance').textContent = parseFloat(bnbBalance).toFixed(4) + ' BNB';
 
-            // 2. رصيد العملة الاستثمارية
+            // رصيد العملة الاستثمارية
             document.getElementById('investmentBalance').textContent = investmentBalance.toFixed(2);
             document.getElementById('sellBalance').textContent = investmentBalance.toFixed(2);
 
-            // 3. حساب نسبة الأرباح
+            // حساب نسبة الأرباح بناءً على الوقت المنقضي
             let elapsed = 0;
             if (purchaseTime) {
                 elapsed = (Date.now() - purchaseTime) / 1000;
@@ -688,7 +684,7 @@
             document.getElementById('profitBarLabel').textContent = profitPercent.toFixed(0) + '% / 1000%';
             document.getElementById('profitBar').style.width = Math.min(100, (profitPercent / 1000) * 100) + '%';
 
-            // 4. سعر العملة (1 عملة = 1/10000 BNB)
+            // سعر العملة: 1 عملة = 0.0001 BNB (لأن 1 BNB = 10000 عملة)
             const price = 1 / EXCHANGE_RATE;
             document.getElementById('tokenPrice').textContent = price.toFixed(4) + ' BNB';
 
@@ -705,30 +701,32 @@
             document.getElementById('modalSellProfit').textContent = profitAmount.toFixed(4) + ' BNB';
             document.getElementById('modalSellTotal').textContent = total.toFixed(4) + ' BNB';
 
-            // 5. التحقق من توفر البيع
-            let isSellAvailable = false;
-            let remaining = 0;
+            // التحقق من توفر البيع (بعد 24 ساعة من الشراء)
             if (purchaseTime) {
                 const elapsedSeconds = (Date.now() - purchaseTime) / 1000;
-                if (elapsedSeconds >= INVESTMENT_DURATION && investmentBalance > 0) {
-                    isSellAvailable = true;
-                } else {
-                    remaining = Math.max(0, INVESTMENT_DURATION - elapsedSeconds);
-                }
+                isSellAvailable = elapsedSeconds >= INVESTMENT_DURATION && investmentBalance > 0;
+            } else {
+                isSellAvailable = false;
             }
 
             const sellBtn = document.getElementById('sellBtn');
             const sellStatus = document.getElementById('sellStatus');
             if (isSellAvailable) {
                 sellBtn.disabled = false;
-                sellBtn.className = 'btn-danger';
+                sellBtn.classList.remove('btn-success');
+                sellBtn.classList.add('btn-danger');
                 sellBtn.textContent = '💸 بيع';
                 sellStatus.textContent = '✅ البيع متاح الآن';
                 sellStatus.className = 'text-center mt-3 text-sm font-bold text-green-400';
             } else {
                 sellBtn.disabled = true;
-                sellBtn.className = 'btn-success';
+                sellBtn.classList.remove('btn-danger');
+                sellBtn.classList.add('btn-success');
                 sellBtn.textContent = '⏳ غير متاح';
+                let remaining = 0;
+                if (purchaseTime) {
+                    remaining = Math.max(0, INVESTMENT_DURATION - (Date.now() - purchaseTime) / 1000);
+                }
                 const hours = Math.floor(remaining / 3600);
                 const minutes = Math.floor((remaining % 3600) / 60);
                 const seconds = Math.floor(remaining % 60);
@@ -755,7 +753,7 @@
     }
 
     // ============================================
-    //  شراء العملة (إرسال BNB إلى المحفظة المحددة)
+    //  شراء العملة
     // ============================================
     async function buyTokens() {
         if (!userAddress) {
@@ -764,8 +762,9 @@
         }
         const amountInput = document.getElementById('buyAmount');
         const amount = parseFloat(amountInput.value);
-        if (isNaN(amount) || amount < 0.01) {
-            showToast('⚠️ الحد الأدنى للشراء هو 0.01 BNB', 'warning');
+        // ✅ تم التعديل هنا: 0.01 -> 0.001
+        if (isNaN(amount) || amount < 0.001) {
+            showToast('⚠️ الحد الأدنى للشراء هو 0.001 BNB', 'warning');
             return;
         }
 
@@ -785,9 +784,10 @@
             showToast('⏳ جاري تأكيد المعاملة...', 'info');
             await tx.wait();
 
-            // تحديث الرصيد المحلي
+            // تحديث الرصيد (1 BNB = 10000 عملة)
             const tokensReceived = amount * EXCHANGE_RATE;
             investmentBalance += tokensReceived;
+            // تسجيل وقت الشراء
             purchaseTime = Date.now();
 
             // تحديث الواجهة
@@ -816,16 +816,15 @@
             showToast('⚠️ يرجى ربط المحفظة أولاً!', 'warning');
             return;
         }
+        if (!isSellAvailable) {
+            showToast('⏳ البيع غير متاح بعد، يرجى الانتظار 24 ساعة', 'warning');
+            return;
+        }
         if (investmentBalance <= 0) {
             showToast('⚠️ ليس لديك عملة استثمارية للبيع', 'warning');
             return;
         }
-        // التحقق من توفر البيع
-        if (document.getElementById('sellBtn').disabled) {
-            showToast('⏳ البيع غير متاح بعد، يرجى الانتظار 24 ساعة', 'warning');
-            return;
-        }
-        loadAllData();
+        loadAllData(); // تحديث البيانات
         document.getElementById('sellModal').classList.remove('hidden');
     }
 
@@ -834,21 +833,26 @@
     }
 
     // ============================================
-    //  تأكيد البيع (محاكاة - في الواقع سيتم إرسال BNB من العقد)
+    //  تأكيد البيع
     // ============================================
     async function confirmSell() {
+        if (!isSellAvailable) {
+            showToast('⏳ البيع غير متاح بعد', 'warning');
+            return;
+        }
         const confirmBtn = document.getElementById('confirmSellBtn');
         confirmBtn.disabled = true;
         confirmBtn.innerHTML = '<span class="loading-spinner"></span> جاري...';
 
         try {
-            // محاكاة البيع: نقوم بحساب القيمة + الأرباح ونعرضها
+            // محاكاة البيع: نقوم بإرسال الأرباح إلى المستخدم (في الواقع سيتم من العقد)
+            // هنا نستخدم محاكاة بسيطة: نضيف قيمة العملة + الأرباح إلى رصيد BNB (محاكاة)
             const price = 1 / EXCHANGE_RATE;
             const tokenValue = investmentBalance * price;
             const profitAmount = tokenValue * (profitPercent / 100);
             const total = tokenValue + profitAmount;
 
-            // في الواقع، سيتم إرسال BNB من العقد. هنا نعرض رسالة نجاح ونعيد تعيين الرصيد
+            // في الواقع، سيقوم العقد بتحويل BNB إلى المستخدم، لكننا نعرض رسالة نجاح
             showToast(`✅ تم البيع بنجاح! استلمت ${total.toFixed(4)} BNB`, 'success');
 
             // إعادة تعيين الرصيد
@@ -875,8 +879,8 @@
         }
         updateCountdown();
         setInterval(updateCountdown, 1000);
-        loadAllData(); // بيانات أولية (إن كان هناك محفظة)
+        loadAllData(); // بيانات أولية
     };
 </script>
 </body>
-</html>
+                        </html>
