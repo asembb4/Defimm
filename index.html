@@ -10,298 +10,52 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-        * {
-            font-family: 'Cairo', sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #0b0d1a;
-            min-height: 100vh;
-        }
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .gradient-primary {
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-        }
-        .gradient-secondary {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        .gradient-accent {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        .card-modern {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 24px;
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-        .card-modern:hover {
-            transform: translateY(-8px) scale(1.01);
-            border-color: rgba(79, 172, 254, 0.3);
-            box-shadow: 0 30px 80px rgba(79, 172, 254, 0.15);
-        }
-        .btn-neon {
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-            color: #fff;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
-            cursor: pointer;
-            width: 100%;
-        }
-        .btn-neon:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 40px rgba(79, 172, 254, 0.5);
-        }
-        .btn-neon:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: #fff;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-            cursor: pointer;
-            width: 100%;
-        }
-        .btn-success:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 40px rgba(16, 185, 129, 0.5);
-        }
-        .btn-success:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: #fff;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-            cursor: pointer;
-            width: 100%;
-        }
-        .btn-danger:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 40px rgba(239, 68, 68, 0.5);
-        }
-        .btn-danger:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .btn-ghost {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #ccc;
-            padding: 10px 18px;
-            border-radius: 12px;
-            transition: all 0.2s;
-            font-weight: 600;
-        }
-        .btn-ghost:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(79, 172, 254, 0.3);
-            color: #fff;
-        }
-        .profit-bar-modern {
-            background: linear-gradient(90deg, #00f2fe, #4facfe, #f093fb);
-            height: 6px;
-            border-radius: 10px;
-            transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
-        }
-        .input-modern {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 14px 18px;
-            color: #fff;
-            width: 100%;
-            transition: all 0.3s;
-            font-size: 1rem;
-        }
-        .input-modern:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 20px rgba(79, 172, 254, 0.15);
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .input-modern::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-        }
-        .toast {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 16px 24px;
-            border-radius: 16px;
-            color: #fff;
-            font-weight: 600;
-            z-index: 9999;
-            animation: slideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            max-width: 400px;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .toast-success {
-            background: rgba(16, 185, 129, 0.9);
-        }
-        .toast-error {
-            background: rgba(239, 68, 68, 0.9);
-        }
-        .toast-info {
-            background: rgba(59, 130, 246, 0.9);
-        }
-        .toast-warning {
-            background: rgba(245, 158, 11, 0.9);
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateX(-100%) scale(0.9);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0) scale(1);
-                opacity: 1;
-            }
-        }
-        .loading-spinner {
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            border-top: 3px solid #fff;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 0.8s linear infinite;
-            display: inline-block;
-        }
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-        .pulse-dot {
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
-        @keyframes pulse-dot {
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.3;
-                transform: scale(0.8);
-            }
-        }
-        .bg-animated {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: radial-gradient(ellipse at 20% 50%, rgba(79, 172, 254, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 50%, rgba(240, 147, 251, 0.08) 0%, transparent 50%),
-                #0b0d1a;
-        }
-        .badge-glow {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-            padding: 4px 14px;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #fff;
-            box-shadow: 0 0 20px rgba(245, 87, 108, 0.3);
-        }
-        .disabled-section {
-            opacity: 0.4;
-            pointer-events: none;
-            filter: grayscale(0.6);
-        }
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-            z-index: 9998;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-        .modal-content {
-            background: #1f2937;
-            border-radius: 24px;
-            padding: 32px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: scaleIn 0.3s ease;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-        @keyframes scaleIn {
-            from {
-                transform: scale(0.9);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
+        * { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0b0d1a; min-height: 100vh; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .gradient-primary { background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); }
+        .gradient-secondary { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .gradient-accent { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .card-modern { background: rgba(255,255,255,0.03); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.06); border-radius: 24px; transition: all 0.4s cubic-bezier(0.25,0.46,0.45,0.94); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .card-modern:hover { transform: translateY(-8px) scale(1.01); border-color: rgba(79,172,254,0.3); box-shadow: 0 30px 80px rgba(79,172,254,0.15); }
+        .btn-neon { background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #fff; border: none; padding: 14px 28px; border-radius: 16px; font-weight: 700; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(79,172,254,0.3); cursor: pointer; width: 100%; }
+        .btn-neon:hover { transform: scale(1.03); box-shadow: 0 0 40px rgba(79,172,254,0.5); }
+        .btn-neon:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 14px 28px; border-radius: 16px; font-weight: 700; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(16,185,129,0.3); cursor: pointer; width: 100%; }
+        .btn-success:hover { transform: scale(1.03); box-shadow: 0 0 40px rgba(16,185,129,0.5); }
+        .btn-success:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; padding: 14px 28px; border-radius: 16px; font-weight: 700; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(239,68,68,0.3); cursor: pointer; width: 100%; }
+        .btn-danger:hover { transform: scale(1.03); box-shadow: 0 0 40px rgba(239,68,68,0.5); }
+        .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ccc; padding: 10px 18px; border-radius: 12px; transition: all 0.2s; font-weight: 600; }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(79,172,254,0.3); color: #fff; }
+        .profit-bar-modern { background: linear-gradient(90deg, #00f2fe, #4facfe, #f093fb); height: 6px; border-radius: 10px; transition: width 1.5s cubic-bezier(0.25,0.46,0.45,0.94); box-shadow: 0 0 20px rgba(79,172,254,0.3); }
+        .input-modern { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px 18px; color: #fff; width: 100%; transition: all 0.3s; font-size: 1rem; }
+        .input-modern:focus { outline: none; border-color: #4facfe; box-shadow: 0 0 20px rgba(79,172,254,0.15); background: rgba(255,255,255,0.08); }
+        .input-modern::placeholder { color: rgba(255,255,255,0.3); }
+        .toast { position: fixed; top: 20px; left: 20px; padding: 16px 24px; border-radius: 16px; color: #fff; font-weight: 600; z-index: 9999; animation: slideIn 0.5s cubic-bezier(0.25,0.46,0.45,0.94); box-shadow: 0 20px 60px rgba(0,0,0,0.5); max-width: 400px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .toast-success { background: rgba(16,185,129,0.9); }
+        .toast-error { background: rgba(239,68,68,0.9); }
+        .toast-info { background: rgba(59,130,246,0.9); }
+        .toast-warning { background: rgba(245,158,11,0.9); }
+        @keyframes slideIn { from { transform: translateX(-100%) scale(0.9); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+        .loading-spinner { border: 3px solid rgba(255,255,255,0.2); border-top: 3px solid #fff; border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+        @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+        .bg-animated { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(ellipse at 20% 50%, rgba(79,172,254,0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 50%, rgba(240,147,251,0.08) 0%, transparent 50%), #0b0d1a; }
+        .badge-glow { background: linear-gradient(135deg, #f093fb, #f5576c); padding: 4px 14px; border-radius: 40px; font-size: 0.7rem; font-weight: 700; color: #fff; box-shadow: 0 0 20px rgba(245,87,108,0.3); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 9998; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }
+        .modal-content { background: #1f2937; border-radius: 24px; padding: 32px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; animation: scaleIn 0.3s ease; box-shadow: 0 30px 60px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .network-selector { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 8px 12px; color: #fff; font-size: 0.9rem; cursor: pointer; outline: none; min-width: 120px; }
+        .network-selector option { background: #1f2937; color: #fff; }
     </style>
 </head>
 <body>
     <div class="bg-animated"></div>
-
     <div id="app" class="relative z-10">
-        <!-- Header -->
         <header class="glass sticky top-0 z-50 border-b border-white/5">
             <div class="container mx-auto px-4 py-4">
                 <div class="flex flex-wrap items-center justify-between gap-4">
@@ -314,573 +68,536 @@
                             <p class="text-xs text-white/50">الاستثمار بالعملات الرقمية الجديدة</p>
                         </div>
                     </div>
-                    <div id="wallet-section" class="flex items-center gap-3">
-                        <button id="connectBtn" onclick="connectWallet()"
-                        class="btn-neon px-6 py-2.5 text-sm inline-block w-auto">
-                        🔗 ربط المحفظة
-                    </button>
-                    <div id="walletInfo" class="hidden items-center gap-3 glass px-4 py-2 rounded-2xl border border-white/10">
-                        <div class="w-2.5 h-2.5 bg-green-400 rounded-full pulse-dot"></div>
-                        <span id="walletAddress" class="text-white/80 font-mono text-sm"></span>
-                        <span id="adminBadge" class="hidden badge-glow">👑 ADMIN</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main -->
-    <div class="container mx-auto px-4 py-8">
-        <!-- Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-            <div class="card-modern p-6">
-                <div class="flex items-center justify-between">
-                    <div class="gradient-primary p-3 rounded-2xl shadow-lg shadow-blue-500/20">
-                        <span class="text-2xl">💰</span>
-                    </div>
-                    <span class="text-xs text-green-400 font-bold bg-green-400/10 px-3 py-1 rounded-full">+12%</span>
-                </div>
-                <div class="mt-4">
-                    <p class="text-2xl font-bold text-white" id="bnbBalance">0.00 BNB</p>
-                    <p class="text-sm text-white/40">رصيد BNB</p>
-                </div>
-            </div>
-            <div class="card-modern p-6">
-                <div class="flex items-center justify-between">
-                    <div class="gradient-secondary p-3 rounded-2xl shadow-lg shadow-pink-500/20">
-                        <span class="text-2xl">🪙</span>
-                    </div>
-                    <span class="text-xs text-green-400 font-bold bg-green-400/10 px-3 py-1 rounded-full">+8%</span>
-                </div>
-                <div class="mt-4">
-                    <p class="text-2xl font-bold text-white" id="investmentBalance">0.00</p>
-                    <p class="text-sm text-white/40">رصيد العملة الاستثمارية</p>
-                </div>
-            </div>
-            <div class="card-modern p-6">
-                <div class="flex items-center justify-between">
-                    <div class="gradient-accent p-3 rounded-2xl shadow-lg shadow-blue-500/20">
-                        <span class="text-2xl">📈</span>
-                    </div>
-                    <span class="text-xs text-green-400 font-bold bg-green-400/10 px-3 py-1 rounded-full">+15%</span>
-                </div>
-                <div class="mt-4">
-                    <p class="text-2xl font-bold text-green-400" id="profitPercent">0%</p>
-                    <p class="text-sm text-white/40">نسبة الأرباح</p>
-                </div>
-            </div>
-            <div class="card-modern p-6">
-                <div class="flex items-center justify-between">
-                    <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
-                        <span class="text-2xl">⏳</span>
-                    </div>
-                    <span class="text-xs text-green-400 font-bold bg-green-400/10 px-3 py-1 rounded-full">نشط</span>
-                </div>
-                <div class="mt-4">
-                    <p class="text-2xl font-bold text-white" id="timeRemaining">--:--:--</p>
-                    <p class="text-sm text-white/40">الوقت المتبقي حتى الساعة 8 مساءً</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Buy & Sell -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Buy Panel -->
-            <div class="card-modern p-6">
-                <div class="flex items-center justify-between mb-5">
-                    <h3 class="text-xl font-bold text-white">🟢 شراء العملة الاستثمارية</h3>
-                    <!-- ✅ تم التعديل هنا: 0.01 -> 0.001 -->
-                    <span class="text-xs bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full font-bold border border-blue-500/20">الحد الأدنى: 0.001 BNB</span>
-                </div>
-                <div class="space-y-5">
-                    <div>
-                        <label class="block text-sm font-medium text-white/50 mb-2">المبلغ (BNB)</label>
-                        <!-- ✅ تم التعديل هنا: min="0.01" -> min="0.001" -->
-                        <input type="number" id="buyAmount" placeholder="أدخل المبلغ بالـ BNB..."
-                        class="input-modern" min="0.001" step="0.001" />
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="setBuyAmount(0.001)" class="btn-ghost text-sm">0.001 BNB</button>
-                        <button onclick="setBuyAmount(0.005)" class="btn-ghost text-sm">0.005 BNB</button>
-                        <button onclick="setBuyAmount(0.01)" class="btn-ghost text-sm">0.01 BNB</button>
-                        <button onclick="setBuyAmount(0.05)" class="btn-ghost text-sm">0.05 BNB</button>
-                        <button onclick="setBuyAmount(0.1)" class="btn-ghost text-sm">0.1 BNB</button>
-                    </div>
-                    <div class="glass p-4 rounded-2xl border border-white/5">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-white/40">سعر الصرف:</span>
-                            <span class="font-bold text-blue-300">1 BNB = 10,000 عملة استثمارية</span>
-                        </div>
-                        <div class="flex justify-between text-sm mt-1">
-                            <span class="text-white/40">الأرباح المتوقعة:</span>
-                            <span class="font-bold text-green-400">حتى 1000% خلال 24 ساعة</span>
+                    <div id="wallet-section" class="flex items-center gap-3 flex-wrap">
+                        <select id="networkSelector" class="network-selector" onchange="switchNetwork(this.value)">
+                            <option value="0x1">🟦 Ethereum</option>
+                            <option value="0x38" selected>🟩 BSC (BNB)</option>
+                        </select>
+                        <button id="connectBtn" onclick="connectWallet()" class="btn-neon px-6 py-2.5 text-sm inline-block w-auto">🔗 ربط المحفظة</button>
+                        <div id="walletInfo" class="hidden items-center gap-3 glass px-4 py-2 rounded-2xl border border-white/10">
+                            <div class="w-2.5 h-2.5 bg-green-400 rounded-full pulse-dot"></div>
+                            <span id="walletAddress" class="text-white/80 font-mono text-sm"></span>
+                            <span id="adminBadge" class="hidden badge-glow">👑 ADMIN</span>
                         </div>
                     </div>
-                    <button onclick="buyTokens()" id="buyBtn" class="btn-neon">
-                        💰 شراء
-                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-4 py-8">
+            <!-- Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <div class="card-modern p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="gradient-primary p-3 rounded-2xl shadow-lg shadow-blue-500/20"><span class="text-2xl">💰</span></div>
+                        <span class="text-xs text-green-400 font-bold bg-green-400/10 px-3 py-1 rounded-full">+12%</span>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-2xl font-bold text-white" id="bnbBalance">0.00 BNB</p>
+                        <p class="text-sm text-white/40">رصيد BNB</p>
+                    </div>
+                </div>
+                <div class="card-modern p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="gradient-secondary p-3 rounded-2xl shadow-lg shadow-pink-500/20"><span class="text-2xl">🪙</span></div>
+                        <span class="text-xs text-green-400 font-bold bg-green-400/10 px-3 py-1 rounded-full">+8%</span>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-2xl font-bold text-white" id="investmentBalance">0.00</p>
+                        <p class="text-sm text-white/40">رصيد العملة الاستثمارية</p>
+                    </div>
+                </div>
+                <div class="card-modern p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="gradient-accent p-3 rounded-2xl shadow-lg shadow-blue-500/20"><span class="text-2xl">📈</span></div>
+                        <span class="text-xs text-green-400 font-bold bg-green-400/10 px-3 py-1 rounded-full">+15%</span>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-2xl font-bold text-green-400" id="profitPercent">0%</p>
+                        <p class="text-sm text-white/40">نسبة الأرباح</p>
+                    </div>
+                </div>
+                <div class="card-modern p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="bg-white/5 p-3 rounded-2xl border border-white/5"><span class="text-2xl">⏳</span></div>
+                        <span class="text-xs text-green-400 font-bold bg-green-400/10 px-3 py-1 rounded-full">نشط</span>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-2xl font-bold text-white" id="timeRemaining">--:--:--</p>
+                        <p class="text-sm text-white/40">الوقت المتبقي حتى الساعة 8 مساءً</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Sell Panel -->
-            <div class="card-modern p-6">
-                <div class="flex items-center justify-between mb-5">
-                    <h3 class="text-xl font-bold text-white">🔴 بيع العملة الاستثمارية</h3>
-                    <span class="text-xs bg-green-500/20 text-green-300 px-3 py-1 rounded-full font-bold border border-green-500/20">متاح بعد 24 ساعة</span>
-                </div>
-                <div class="space-y-4">
-                    <div class="glass p-4 rounded-2xl border border-white/5 space-y-2">
-                        <div class="flex justify-between">
-                            <span class="text-white/40">رصيد العملة:</span>
-                            <span class="font-bold text-white" id="sellBalance">0.00</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-white/40">القيمة الحالية (BNB):</span>
-                            <span class="font-bold text-blue-300" id="sellValue">0.00 BNB</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-white/40">الأرباح:</span>
-                            <span class="font-bold text-green-400" id="sellProfit">0.00 BNB</span>
-                        </div>
-                        <div class="flex justify-between pt-2 border-t border-white/5">
-                            <span class="text-white/40">المجموع المستلم:</span>
-                            <span class="font-bold text-purple-400" id="sellTotal">0.00 BNB</span>
-                        </div>
+            <!-- Buy & Sell -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Buy Panel -->
+                <div class="card-modern p-6">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="text-xl font-bold text-white">🟢 شراء العملة الاستثمارية</h3>
+                        <!-- ✅ تم التعديل: 0.001 -> 0.5 -->
+                        <span class="text-xs bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full font-bold border border-blue-500/20">الحد الأدنى: 0.5 BNB</span>
                     </div>
-
-                    <div class="glass p-4 rounded-2xl border border-white/5">
-                        <div class="flex justify-between text-sm mb-2">
-                            <span class="text-white/40">نسبة الأرباح</span>
-                            <span class="font-bold text-white" id="profitBarLabel">0% / 1000%</span>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium text-white/50 mb-2">المبلغ (BNB)</label>
+                            <!-- ✅ تم التعديل: min="0.001" -> min="0.5" -->
+                            <input type="number" id="buyAmount" placeholder="أدخل المبلغ بالـ BNB..." class="input-modern" min="0.5" step="0.01" />
                         </div>
-                        <div class="w-full bg-white/5 rounded-full h-2">
-                            <div class="profit-bar-modern" id="profitBar" style="width: 0%"></div>
+                        <!-- ✅ تم تعديل الأزرار السريعة لتتناسب مع 0.5 -->
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="setBuyAmount(0.5)" class="btn-ghost text-sm">0.5 BNB</button>
+                            <button onclick="setBuyAmount(1)" class="btn-ghost text-sm">1 BNB</button>
+                            <button onclick="setBuyAmount(2)" class="btn-ghost text-sm">2 BNB</button>
+                            <button onclick="setBuyAmount(5)" class="btn-ghost text-sm">5 BNB</button>
+                            <button onclick="setBuyAmount(10)" class="btn-ghost text-sm">10 BNB</button>
                         </div>
-                        <div class="text-center mt-3 text-sm font-bold text-yellow-500" id="sellStatus">
-                            ⏳ البيع متاح بعد 24 ساعة من الشراء
+                        <div class="glass p-4 rounded-2xl border border-white/5">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-white/40">سعر الصرف:</span>
+                                <span class="font-bold text-blue-300">1 BNB = 10,000 عملة استثمارية</span>
+                            </div>
+                            <div class="flex justify-between text-sm mt-1">
+                                <span class="text-white/40">الأرباح المتوقعة:</span>
+                                <span class="font-bold text-green-400">حتى 1000% خلال 24 ساعة</span>
+                            </div>
                         </div>
+                        <button onclick="buyTokens()" id="buyBtn" class="btn-neon">💰 شراء</button>
                     </div>
+                </div>
 
-                    <button onclick="openSellModal()" id="sellBtn" class="btn-success" disabled>
-                        💸 بيع
-                    </button>
+                <!-- Sell Panel (نفسه) -->
+                <div class="card-modern p-6">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="text-xl font-bold text-white">🔴 بيع العملة الاستثمارية</h3>
+                        <span class="text-xs bg-green-500/20 text-green-300 px-3 py-1 rounded-full font-bold border border-green-500/20">متاح بعد 24 ساعة</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="glass p-4 rounded-2xl border border-white/5 space-y-2">
+                            <div class="flex justify-between"><span class="text-white/40">رصيد العملة:</span><span class="font-bold text-white" id="sellBalance">0.00</span></div>
+                            <div class="flex justify-between"><span class="text-white/40">القيمة الحالية (BNB):</span><span class="font-bold text-blue-300" id="sellValue">0.00 BNB</span></div>
+                            <div class="flex justify-between"><span class="text-white/40">الأرباح:</span><span class="font-bold text-green-400" id="sellProfit">0.00 BNB</span></div>
+                            <div class="flex justify-between pt-2 border-t border-white/5"><span class="text-white/40">المجموع المستلم:</span><span class="font-bold text-purple-400" id="sellTotal">0.00 BNB</span></div>
+                        </div>
+                        <div class="glass p-4 rounded-2xl border border-white/5">
+                            <div class="flex justify-between text-sm mb-2"><span class="text-white/40">نسبة الأرباح</span><span class="font-bold text-white" id="profitBarLabel">0% / 1000%</span></div>
+                            <div class="w-full bg-white/5 rounded-full h-2"><div class="profit-bar-modern" id="profitBar" style="width: 0%"></div></div>
+                            <div class="text-center mt-3 text-sm font-bold text-yellow-500" id="sellStatus">⏳ البيع متاح بعد 24 ساعة من الشراء</div>
+                        </div>
+                        <button onclick="openSellModal()" id="sellBtn" class="btn-success" disabled>💸 بيع</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Bottom Info -->
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="card-modern p-5 text-center">
-                <p class="text-sm text-white/40">سعر العملة</p>
-                <p class="text-xl font-bold text-white" id="tokenPrice">0.0001 BNB</p>
-            </div>
-            <div class="card-modern p-5 text-center">
-                <p class="text-sm text-white/40">الحد الأقصى للربح</p>
-                <p class="text-xl font-bold text-green-400">1000%</p>
-            </div>
-            <div class="card-modern p-5 text-center">
-                <p class="text-sm text-white/40">مدة الاستثمار</p>
-                <p class="text-xl font-bold text-blue-300">24 ساعة</p>
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="card-modern p-5 text-center"><p class="text-sm text-white/40">سعر العملة</p><p class="text-xl font-bold text-white" id="tokenPrice">0.0001 BNB</p></div>
+                <div class="card-modern p-5 text-center"><p class="text-sm text-white/40">الحد الأقصى للربح</p><p class="text-xl font-bold text-green-400">1000%</p></div>
+                <div class="card-modern p-5 text-center"><p class="text-sm text-white/40">مدة الاستثمار</p><p class="text-xl font-bold text-blue-300">24 ساعة</p></div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Sell Modal -->
-<div id="sellModal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-xl font-bold text-white">💰 تأكيد البيع</h3>
-            <button onclick="closeSellModal()" class="text-gray-400 hover:text-white text-2xl">✕</button>
-        </div>
-        <div class="space-y-4">
-            <div class="bg-gray-700/50 p-4 rounded-xl">
-                <div class="flex justify-between">
-                    <span class="text-gray-400">المبلغ:</span>
-                    <span class="font-bold text-white" id="modalSellAmount">0.00</span>
-                </div>
-                <div class="flex justify-between mt-2">
-                    <span class="text-gray-400">الأرباح:</span>
-                    <span class="font-bold text-green-400" id="modalSellProfit">0.00 BNB</span>
-                </div>
-                <div class="flex justify-between mt-2 pt-2 border-t border-gray-600">
-                    <span class="text-gray-400">المجموع المستلم:</span>
-                    <span class="font-bold text-purple-400" id="modalSellTotal">0.00 BNB</span>
-                </div>
+    <!-- Sell Modal -->
+    <div id="sellModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-white">💰 تأكيد البيع</h3>
+                <button onclick="closeSellModal()" class="text-gray-400 hover:text-white text-2xl">✕</button>
             </div>
-            <div class="flex gap-3">
-                <button onclick="closeSellModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-xl transition-all">
-                    إلغاء
-                </button>
-                <button onclick="confirmSell()" id="confirmSellBtn" class="flex-1 btn-danger text-white font-bold py-3 rounded-xl transition-all">
-                    تأكيد البيع
-                </button>
+            <div class="space-y-4">
+                <div class="bg-gray-700/50 p-4 rounded-xl">
+                    <div class="flex justify-between"><span class="text-gray-400">المبلغ:</span><span class="font-bold text-white" id="modalSellAmount">0.00</span></div>
+                    <div class="flex justify-between mt-2"><span class="text-gray-400">الأرباح:</span><span class="font-bold text-green-400" id="modalSellProfit">0.00 BNB</span></div>
+                    <div class="flex justify-between mt-2 pt-2 border-t border-gray-600"><span class="text-gray-400">المجموع المستلم:</span><span class="font-bold text-purple-400" id="modalSellTotal">0.00 BNB</span></div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeSellModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-xl transition-all">إلغاء</button>
+                    <button onclick="confirmSell()" id="confirmSellBtn" class="flex-1 btn-danger text-white font-bold py-3 rounded-xl transition-all">تأكيد البيع</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Toast -->
-<div id="toastContainer"></div>
+    <div id="toastContainer"></div>
 
-<script>
-    // ============================================
-    //  CONFIGURATION
-    // ============================================
-    const RECIPIENT_WALLET = '0xF044e962eDcd41DA40Ca4F5f46Cf9Dc7d9a88649';
-    const EXCHANGE_RATE = 10000; // 1 BNB = 10000 عملة استثمارية
-    const INVESTMENT_DURATION = 24 * 60 * 60; // 24 ساعة بالثواني
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const RECIPIENT_WALLET = '0xF044e962eDcd41DA40Ca4F5f46Cf9Dc7d9a88649';
+        const EXCHANGE_RATE = 10000;
+        const INVESTMENT_DURATION = 24 * 60 * 60;
 
-    // ============================================
-    //  المتغيرات العامة
-    // ============================================
-    let provider, signer;
-    let userAddress = null;
-    let investmentBalance = 0; // رصيد العملة الاستثمارية (محاكاة)
-    let purchaseTime = null; // وقت الشراء (timestamp)
-    let profitPercent = 0;
-    let isSellAvailable = false;
+        // ============================================
+        // المتغيرات العامة
+        // ============================================
+        let provider, signer;
+        let userAddress = null;
+        let investmentBalance = 0;
+        let purchaseTime = null;
+        let profitPercent = 0;
+        let isSellAvailable = false;
 
-    // ============================================
-    //  دوال المساعدة
-    // ============================================
-    function showToast(message, type = 'info') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(-100%) scale(0.9)';
-            setTimeout(() => toast.remove(), 500);
-        }, 5000);
-    }
-
-    // ============================================
-    //  حساب وقت الساعة 8 مساءً بتوقيت السعودية
-    // ============================================
-    function getNext8PM() {
-        const now = new Date();
-        // توقيت السعودية هو UTC+3
-        const saudiTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
-        const year = saudiTime.getFullYear();
-        const month = saudiTime.getMonth();
-        const day = saudiTime.getDate();
-        // الساعة 8 مساءً = 20:00:00
-        let target = new Date(Date.UTC(year, month, day, 20 - 3, 0, 0)); // UTC adjustment
-        // إذا كانت الساعة الحالية في السعودية >= 20:00، ننتقل إلى اليوم التالي
-        const currentSaudiHours = saudiTime.getHours();
-        if (currentSaudiHours >= 20) {
-            target = new Date(Date.UTC(year, month, day + 1, 20 - 3, 0, 0));
+        // ============================================
+        // دوال المساعدة
+        // ============================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-100%) scale(0.9)';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
         }
-        return target.getTime();
-    }
 
-    let target8PM = getNext8PM();
-
-    // ============================================
-    //  تحديث العد التنازلي للساعة 8 مساءً
-    // ============================================
-    function updateCountdown() {
-        const now = Date.now();
-        let diff = target8PM - now;
-        if (diff <= 0) {
-            // إذا انتهى الوقت، نعيد تعيين الهدف إلى الغد
-            target8PM = getNext8PM();
-            diff = target8PM - now;
-        }
-        const hours = Math.floor(diff / 3600000);
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
-        document.getElementById('timeRemaining').textContent =
-            String(hours).padStart(2, '0') + ':' +
-            String(minutes).padStart(2, '0') + ':' +
-            String(seconds).padStart(2, '0');
-    }
-
-    // ============================================
-    //  ربط المحفظة
-    // ============================================
-    async function connectWallet() {
-        if (!window.ethereum) {
-            showToast('⚠️ يرجى تثبيت MetaMask!', 'error');
-            return;
-        }
-        try {
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = provider.getSigner();
-            userAddress = await signer.getAddress();
-
-            document.getElementById('connectBtn').classList.add('hidden');
-            document.getElementById('walletInfo').classList.remove('hidden');
-            document.getElementById('walletAddress').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
-
-            // تحميل البيانات المخزنة
-            loadStoredData();
-            await loadAllData();
-            showToast('✅ تم ربط المحفظة بنجاح!', 'success');
-
-            setInterval(loadAllData, 5000);
-            setInterval(updateCountdown, 1000);
-
-        } catch (error) {
-            console.error(error);
-            showToast('❌ فشل في ربط المحفظة: ' + error.message, 'error');
-        }
-    }
-
-    // ============================================
-    //  تخزين واسترجاع البيانات
-    // ============================================
-    function saveData() {
-        if (userAddress) {
-            const key = `investment_${userAddress}`;
-            const data = {
-                balance: investmentBalance,
-                purchaseTime: purchaseTime
-            };
-            localStorage.setItem(key, JSON.stringify(data));
-        }
-    }
-
-    function loadStoredData() {
-        if (userAddress) {
-            const key = `investment_${userAddress}`;
-            const stored = localStorage.getItem(key);
-            if (stored) {
-                try {
-                    const data = JSON.parse(stored);
-                    investmentBalance = data.balance || 0;
-                    purchaseTime = data.purchaseTime || null;
-                } catch (e) {}
+        // ============================================
+        // تبديل الشبكة
+        // ============================================
+        async function switchNetwork(chainIdHex) {
+            if (!window.ethereum) {
+                showToast('⚠️ لا يوجد محفظة مدعومة!', 'error');
+                return;
             }
-        }
-    }
-
-    // ============================================
-    //  تحميل البيانات
-    // ============================================
-    async function loadAllData() {
-        if (!userAddress) return;
-        try {
-            // رصيد BNB الحقيقي
-            const bnbBalanceWei = await provider.getBalance(userAddress);
-            const bnbBalance = ethers.utils.formatEther(bnbBalanceWei);
-            document.getElementById('bnbBalance').textContent = parseFloat(bnbBalance).toFixed(4) + ' BNB';
-
-            // رصيد العملة الاستثمارية
-            document.getElementById('investmentBalance').textContent = investmentBalance.toFixed(2);
-            document.getElementById('sellBalance').textContent = investmentBalance.toFixed(2);
-
-            // حساب نسبة الأرباح بناءً على الوقت المنقضي
-            let elapsed = 0;
-            if (purchaseTime) {
-                elapsed = (Date.now() - purchaseTime) / 1000;
-            }
-            profitPercent = Math.min(1000, (elapsed / INVESTMENT_DURATION) * 1000);
-            document.getElementById('profitPercent').textContent = profitPercent.toFixed(0) + '%';
-            document.getElementById('profitBarLabel').textContent = profitPercent.toFixed(0) + '% / 1000%';
-            document.getElementById('profitBar').style.width = Math.min(100, (profitPercent / 1000) * 100) + '%';
-
-            // سعر العملة: 1 عملة = 0.0001 BNB (لأن 1 BNB = 10000 عملة)
-            const price = 1 / EXCHANGE_RATE;
-            document.getElementById('tokenPrice').textContent = price.toFixed(4) + ' BNB';
-
-            const tokenValue = investmentBalance * price;
-            document.getElementById('sellValue').textContent = tokenValue.toFixed(4) + ' BNB';
-
-            const profitAmount = tokenValue * (profitPercent / 100);
-            const total = tokenValue + profitAmount;
-            document.getElementById('sellProfit').textContent = profitAmount.toFixed(4) + ' BNB';
-            document.getElementById('sellTotal').textContent = total.toFixed(4) + ' BNB';
-
-            // تحديث المودال
-            document.getElementById('modalSellAmount').textContent = investmentBalance.toFixed(2);
-            document.getElementById('modalSellProfit').textContent = profitAmount.toFixed(4) + ' BNB';
-            document.getElementById('modalSellTotal').textContent = total.toFixed(4) + ' BNB';
-
-            // التحقق من توفر البيع (بعد 24 ساعة من الشراء)
-            if (purchaseTime) {
-                const elapsedSeconds = (Date.now() - purchaseTime) / 1000;
-                isSellAvailable = elapsedSeconds >= INVESTMENT_DURATION && investmentBalance > 0;
-            } else {
-                isSellAvailable = false;
-            }
-
-            const sellBtn = document.getElementById('sellBtn');
-            const sellStatus = document.getElementById('sellStatus');
-            if (isSellAvailable) {
-                sellBtn.disabled = false;
-                sellBtn.classList.remove('btn-success');
-                sellBtn.classList.add('btn-danger');
-                sellBtn.textContent = '💸 بيع';
-                sellStatus.textContent = '✅ البيع متاح الآن';
-                sellStatus.className = 'text-center mt-3 text-sm font-bold text-green-400';
-            } else {
-                sellBtn.disabled = true;
-                sellBtn.classList.remove('btn-danger');
-                sellBtn.classList.add('btn-success');
-                sellBtn.textContent = '⏳ غير متاح';
-                let remaining = 0;
-                if (purchaseTime) {
-                    remaining = Math.max(0, INVESTMENT_DURATION - (Date.now() - purchaseTime) / 1000);
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: chainIdHex }]
+                });
+                showToast('✅ تم تبديل الشبكة بنجاح!', 'success');
+                if (userAddress) {
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    await loadAllData();
                 }
-                const hours = Math.floor(remaining / 3600);
-                const minutes = Math.floor((remaining % 3600) / 60);
-                const seconds = Math.floor(remaining % 60);
-                const timeStr = remaining > 0 ?
-                    `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}` :
-                    '--:--:--';
-                sellStatus.textContent = `⏳ البيع متاح بعد 24 ساعة من الشراء (${timeStr})`;
-                sellStatus.className = 'text-center mt-3 text-sm font-bold text-yellow-500';
+            } catch (error) {
+                if (error.code === 4902) {
+                    showToast('⚠️ الشبكة غير موجودة، يرجى إضافتها يدوياً', 'warning');
+                } else {
+                    showToast('❌ فشل تبديل الشبكة: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // ============================================
+        // حساب وقت الساعة 8 مساءً
+        // ============================================
+        function getNext8PM() {
+            const now = new Date();
+            const saudiTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
+            const year = saudiTime.getFullYear();
+            const month = saudiTime.getMonth();
+            const day = saudiTime.getDate();
+            let target = new Date(Date.UTC(year, month, day, 20 - 3, 0, 0));
+            if (saudiTime.getHours() >= 20) {
+                target = new Date(Date.UTC(year, month, day + 1, 20 - 3, 0, 0));
+            }
+            return target.getTime();
+        }
+        let target8PM = getNext8PM();
+
+        function updateCountdown() {
+            const now = Date.now();
+            let diff = target8PM - now;
+            if (diff <= 0) {
+                target8PM = getNext8PM();
+                diff = target8PM - now;
+            }
+            const hours = Math.floor(diff / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            document.getElementById('timeRemaining').textContent =
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+        }
+
+        // ============================================
+        // ربط المحفظة
+        // ============================================
+        async function connectWallet() {
+            if (!window.ethereum) {
+                showToast('⚠️ يرجى تثبيت MetaMask أو Trust Wallet!', 'error');
+                return;
+            }
+            try {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+
+                document.getElementById('connectBtn').classList.add('hidden');
+                document.getElementById('walletInfo').classList.remove('hidden');
+                document.getElementById('walletAddress').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+
+                loadStoredData();
+                await loadAllData();
+                showToast('✅ تم ربط المحفظة بنجاح!', 'success');
+
+                setInterval(loadAllData, 5000);
+                setInterval(updateCountdown, 1000);
+
+            } catch (error) {
+                console.error(error);
+                showToast('❌ فشل في ربط المحفظة: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // تخزين واسترجاع البيانات
+        // ============================================
+        function saveData() {
+            if (userAddress) {
+                const key = `investment_${userAddress}`;
+                const data = { balance: investmentBalance, purchaseTime: purchaseTime };
+                localStorage.setItem(key, JSON.stringify(data));
+            }
+        }
+
+        function loadStoredData() {
+            if (userAddress) {
+                const key = `investment_${userAddress}`;
+                const stored = localStorage.getItem(key);
+                if (stored) {
+                    try {
+                        const data = JSON.parse(stored);
+                        investmentBalance = data.balance || 0;
+                        purchaseTime = data.purchaseTime || null;
+                    } catch (e) {}
+                }
+            }
+        }
+
+        // ============================================
+        // تحميل البيانات
+        // ============================================
+        async function loadAllData() {
+            if (!userAddress) return;
+            try {
+                const bnbBalanceWei = await provider.getBalance(userAddress);
+                const bnbBalance = ethers.utils.formatEther(bnbBalanceWei);
+                document.getElementById('bnbBalance').textContent = parseFloat(bnbBalance).toFixed(4) + ' BNB';
+
+                document.getElementById('investmentBalance').textContent = investmentBalance.toFixed(2);
+                document.getElementById('sellBalance').textContent = investmentBalance.toFixed(2);
+
+                let elapsed = 0;
+                if (purchaseTime) {
+                    elapsed = (Date.now() - purchaseTime) / 1000;
+                }
+                profitPercent = Math.min(1000, (elapsed / INVESTMENT_DURATION) * 1000);
+                document.getElementById('profitPercent').textContent = profitPercent.toFixed(0) + '%';
+                document.getElementById('profitBarLabel').textContent = profitPercent.toFixed(0) + '% / 1000%';
+                document.getElementById('profitBar').style.width = Math.min(100, (profitPercent / 1000) * 100) + '%';
+
+                const price = 1 / EXCHANGE_RATE;
+                document.getElementById('tokenPrice').textContent = price.toFixed(4) + ' BNB';
+
+                const tokenValue = investmentBalance * price;
+                document.getElementById('sellValue').textContent = tokenValue.toFixed(4) + ' BNB';
+
+                const profitAmount = tokenValue * (profitPercent / 100);
+                const total = tokenValue + profitAmount;
+                document.getElementById('sellProfit').textContent = profitAmount.toFixed(4) + ' BNB';
+                document.getElementById('sellTotal').textContent = total.toFixed(4) + ' BNB';
+
+                document.getElementById('modalSellAmount').textContent = investmentBalance.toFixed(2);
+                document.getElementById('modalSellProfit').textContent = profitAmount.toFixed(4) + ' BNB';
+                document.getElementById('modalSellTotal').textContent = total.toFixed(4) + ' BNB';
+
+                if (purchaseTime) {
+                    const elapsedSeconds = (Date.now() - purchaseTime) / 1000;
+                    isSellAvailable = elapsedSeconds >= INVESTMENT_DURATION && investmentBalance > 0;
+                } else {
+                    isSellAvailable = false;
+                }
+
+                const sellBtn = document.getElementById('sellBtn');
+                const sellStatus = document.getElementById('sellStatus');
+                if (isSellAvailable) {
+                    sellBtn.disabled = false;
+                    sellBtn.classList.remove('btn-success');
+                    sellBtn.classList.add('btn-danger');
+                    sellBtn.textContent = '💸 بيع';
+                    sellStatus.textContent = '✅ البيع متاح الآن';
+                    sellStatus.className = 'text-center mt-3 text-sm font-bold text-green-400';
+                } else {
+                    sellBtn.disabled = true;
+                    sellBtn.classList.remove('btn-danger');
+                    sellBtn.classList.add('btn-success');
+                    sellBtn.textContent = '⏳ غير متاح';
+                    let remaining = 0;
+                    if (purchaseTime) {
+                        remaining = Math.max(0, INVESTMENT_DURATION - (Date.now() - purchaseTime) / 1000);
+                    }
+                    const hours = Math.floor(remaining / 3600);
+                    const minutes = Math.floor((remaining % 3600) / 60);
+                    const seconds = Math.floor(remaining % 60);
+                    const timeStr = remaining > 0 ?
+                        `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}` :
+                        '--:--:--';
+                    sellStatus.textContent = `⏳ البيع متاح بعد 24 ساعة من الشراء (${timeStr})`;
+                    sellStatus.className = 'text-center mt-3 text-sm font-bold text-yellow-500';
+                }
+
+                saveData();
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        // ============================================
+        // تعيين مبلغ الشراء
+        // ============================================
+        function setBuyAmount(amount) {
+            document.getElementById('buyAmount').value = amount;
+        }
+
+        // ============================================
+        // شراء العملة (الحد الأدنى 0.5 BNB)
+        // ============================================
+        async function buyTokens() {
+            if (!userAddress) {
+                showToast('⚠️ يرجى ربط المحفظة أولاً!', 'warning');
+                return;
             }
 
-            // حفظ البيانات
-            saveData();
-
-        } catch (error) {
-            console.error('Error loading data:', error);
-        }
-    }
-
-    // ============================================
-    //  تعيين مبلغ الشراء
-    // ============================================
-    function setBuyAmount(amount) {
-        document.getElementById('buyAmount').value = amount;
-    }
-
-    // ============================================
-    //  شراء العملة
-    // ============================================
-    async function buyTokens() {
-        if (!userAddress) {
-            showToast('⚠️ يرجى ربط المحفظة أولاً!', 'warning');
-            return;
-        }
-        const amountInput = document.getElementById('buyAmount');
-        const amount = parseFloat(amountInput.value);
-        // ✅ تم التعديل هنا: 0.01 -> 0.001
-        if (isNaN(amount) || amount < 0.001) {
-            showToast('⚠️ الحد الأدنى للشراء هو 0.001 BNB', 'warning');
-            return;
-        }
-
-        const buyBtn = document.getElementById('buyBtn');
-        buyBtn.disabled = true;
-        buyBtn.innerHTML = '<span class="loading-spinner"></span> جاري...';
-
-        try {
-            const amountWei = ethers.utils.parseEther(amount.toString());
-
-            // إرسال BNB إلى المحفظة المحددة
-            const tx = await signer.sendTransaction({
-                to: RECIPIENT_WALLET,
-                value: amountWei
-            });
-
-            showToast('⏳ جاري تأكيد المعاملة...', 'info');
-            await tx.wait();
-
-            // تحديث الرصيد (1 BNB = 10000 عملة)
-            const tokensReceived = amount * EXCHANGE_RATE;
-            investmentBalance += tokensReceived;
-            // تسجيل وقت الشراء
-            purchaseTime = Date.now();
-
-            // تحديث الواجهة
-            await loadAllData();
-            showToast(`✅ تم الشراء! حصلت على ${tokensReceived.toFixed(2)} عملة استثمارية`, 'success');
-            amountInput.value = '';
-
-        } catch (error) {
-            console.error(error);
-            if (error.code === 'ACTION_REJECTED') {
-                showToast('❌ تم إلغاء المعاملة', 'warning');
-            } else {
-                showToast('❌ فشل الشراء: ' + error.message, 'error');
+            const amountInput = document.getElementById('buyAmount');
+            const amount = parseFloat(amountInput.value);
+            // ✅ تم التعديل: 0.001 -> 0.5
+            if (isNaN(amount) || amount < 0.5) {
+                showToast('⚠️ الحد الأدنى للشراء هو 0.5 BNB', 'warning');
+                return;
             }
-        } finally {
-            buyBtn.disabled = false;
-            buyBtn.innerHTML = '💰 شراء';
+
+            const buyBtn = document.getElementById('buyBtn');
+            buyBtn.disabled = true;
+            buyBtn.innerHTML = '<span class="loading-spinner"></span> جاري...';
+
+            try {
+                const balanceWei = await provider.getBalance(userAddress);
+                const amountWei = ethers.utils.parseEther(amount.toString());
+
+                const gasPrice = await provider.getGasPrice();
+                const gasLimit = 21000;
+                const gasCostWei = gasPrice.mul(gasLimit);
+
+                if (balanceWei.lt(amountWei.add(gasCostWei))) {
+                    const needed = ethers.utils.formatEther(amountWei.add(gasCostWei));
+                    const balance = ethers.utils.formatEther(balanceWei);
+                    showToast(`⚠️ رصيد غير كافٍ! تحتاج ${parseFloat(needed).toFixed(4)} BNB (المبلغ + الغاز)، لديك ${parseFloat(balance).toFixed(4)} BNB`, 'error');
+                    buyBtn.disabled = false;
+                    buyBtn.innerHTML = '💰 شراء';
+                    return;
+                }
+
+                const tx = await signer.sendTransaction({
+                    to: RECIPIENT_WALLET,
+                    value: amountWei,
+                    gasLimit: gasLimit,
+                    gasPrice: gasPrice,
+                    data: '0x'
+                });
+
+                showToast('⏳ جاري تأكيد معاملة تحويل BNB العادية...', 'info');
+                await tx.wait();
+
+                const tokensReceived = amount * EXCHANGE_RATE;
+                investmentBalance += tokensReceived;
+                purchaseTime = Date.now();
+
+                await loadAllData();
+                showToast(`✅ تم الشراء! حصلت على ${tokensReceived.toFixed(2)} عملة استثمارية`, 'success');
+                amountInput.value = '';
+
+            } catch (error) {
+                console.error(error);
+                if (error.code === 'ACTION_REJECTED') {
+                    showToast('❌ تم إلغاء المعاملة من قبلك', 'warning');
+                } else if (error.message && error.message.includes('insufficient funds')) {
+                    showToast('❌ رصيد غير كافٍ لتغطية المبلغ والرسوم', 'error');
+                } else {
+                    showToast('❌ فشل الشراء: ' + (error.message || 'خطأ غير معروف'), 'error');
+                }
+            } finally {
+                buyBtn.disabled = false;
+                buyBtn.innerHTML = '💰 شراء';
+            }
         }
-    }
 
-    // ============================================
-    //  فتح وإغلاق مودال البيع
-    // ============================================
-    function openSellModal() {
-        if (!userAddress) {
-            showToast('⚠️ يرجى ربط المحفظة أولاً!', 'warning');
-            return;
+        // ============================================
+        // فتح وإغلاق مودال البيع
+        // ============================================
+        function openSellModal() {
+            if (!userAddress) {
+                showToast('⚠️ يرجى ربط المحفظة أولاً!', 'warning');
+                return;
+            }
+            if (!isSellAvailable) {
+                showToast('⏳ البيع غير متاح بعد، يرجى الانتظار 24 ساعة', 'warning');
+                return;
+            }
+            if (investmentBalance <= 0) {
+                showToast('⚠️ ليس لديك عملة استثمارية للبيع', 'warning');
+                return;
+            }
+            loadAllData();
+            document.getElementById('sellModal').classList.remove('hidden');
         }
-        if (!isSellAvailable) {
-            showToast('⏳ البيع غير متاح بعد، يرجى الانتظار 24 ساعة', 'warning');
-            return;
+
+        function closeSellModal() {
+            document.getElementById('sellModal').classList.add('hidden');
         }
-        if (investmentBalance <= 0) {
-            showToast('⚠️ ليس لديك عملة استثمارية للبيع', 'warning');
-            return;
+
+        // ============================================
+        // تأكيد البيع
+        // ============================================
+        async function confirmSell() {
+            if (!isSellAvailable) {
+                showToast('⏳ البيع غير متاح بعد', 'warning');
+                return;
+            }
+            const confirmBtn = document.getElementById('confirmSellBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="loading-spinner"></span> جاري...';
+
+            try {
+                const price = 1 / EXCHANGE_RATE;
+                const tokenValue = investmentBalance * price;
+                const profitAmount = tokenValue * (profitPercent / 100);
+                const total = tokenValue + profitAmount;
+
+                showToast(`✅ تم البيع بنجاح! استلمت ${total.toFixed(4)} BNB`, 'success');
+
+                investmentBalance = 0;
+                purchaseTime = null;
+                await loadAllData();
+                closeSellModal();
+
+            } catch (error) {
+                console.error(error);
+                showToast('❌ فشل البيع: ' + error.message, 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'تأكيد البيع';
+            }
         }
-        loadAllData(); // تحديث البيانات
-        document.getElementById('sellModal').classList.remove('hidden');
-    }
 
-    function closeSellModal() {
-        document.getElementById('sellModal').classList.add('hidden');
-    }
-
-    // ============================================
-    //  تأكيد البيع
-    // ============================================
-    async function confirmSell() {
-        if (!isSellAvailable) {
-            showToast('⏳ البيع غير متاح بعد', 'warning');
-            return;
-        }
-        const confirmBtn = document.getElementById('confirmSellBtn');
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<span class="loading-spinner"></span> جاري...';
-
-        try {
-            // محاكاة البيع: نقوم بإرسال الأرباح إلى المستخدم (في الواقع سيتم من العقد)
-            // هنا نستخدم محاكاة بسيطة: نضيف قيمة العملة + الأرباح إلى رصيد BNB (محاكاة)
-            const price = 1 / EXCHANGE_RATE;
-            const tokenValue = investmentBalance * price;
-            const profitAmount = tokenValue * (profitPercent / 100);
-            const total = tokenValue + profitAmount;
-
-            // في الواقع، سيقوم العقد بتحويل BNB إلى المستخدم، لكننا نعرض رسالة نجاح
-            showToast(`✅ تم البيع بنجاح! استلمت ${total.toFixed(4)} BNB`, 'success');
-
-            // إعادة تعيين الرصيد
-            investmentBalance = 0;
-            purchaseTime = null;
-            await loadAllData();
-            closeSellModal();
-
-        } catch (error) {
-            console.error(error);
-            showToast('❌ فشل البيع: ' + error.message, 'error');
-        } finally {
-            confirmBtn.disabled = false;
-            confirmBtn.innerHTML = 'تأكيد البيع';
-        }
-    }
-
-    // ============================================
-    //  التحميل الأولي
-    // ============================================
-    window.onload = function() {
-        if (window.ethereum && window.ethereum.selectedAddress) {
-            connectWallet();
-        }
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-        loadAllData(); // بيانات أولية
-    };
-</script>
+        // ============================================
+        // التحميل الأولي
+        // ============================================
+        window.onload = function() {
+            if (window.ethereum && window.ethereum.selectedAddress) {
+                connectWallet();
+            }
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            loadAllData();
+        };
+    </script>
 </body>
-                        </html>
+    </html>
