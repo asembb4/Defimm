@@ -860,3 +860,473 @@ function generateChart() {
         gridGroup.innerHTML = gridHtml;
     }
 }
+function updateUserStatus(address, disabled) {
+    const data = getAdminData();
+    if (!data[address]) data[address] = {};
+    data[address].disabled = disabled;
+    saveAdminData(data);
+    renderAdminTable();
+    showToast('✅ تم تحديث حالة المستخدم', 'success');
+}
+
+function updateUserProfit(address, newProfit) {
+    const profit = parseFloat(newProfit);
+    if (isNaN(profit) || profit < 0 || profit > MAX_PROFIT_PERCENT) {
+        showToast(`⚠️ النسبة بين 0 و ${MAX_PROFIT_PERCENT}%`, 'error');
+        return;
+    }
+    const data = getAdminData();
+    if (!data[address]) data[address] = {};
+    data[address].customProfit = profit;
+    saveAdminData(data);
+    if (userAddress === address) { userCustomProfit = profit; updateSellAvailability(); }
+    renderAdminTable();
+    showToast(`✅ تم تحديث نسبة الأرباح إلى ${profit}%`, 'success');
+}
+
+function updateUserBalance(address, newBalance) {
+    const balance = parseFloat(newBalance);
+    if (isNaN(balance) || balance < 0) { showToast('⚠️ الرصيد يجب أن يكون رقماً موجباً', 'error'); return; }
+    const key = `investment_${address}`;
+    let data = {};
+    const stored = localStorage.getItem(key);
+    if (stored) { try { data = JSON.parse(stored); } catch(e) { data = {}; } }
+    data.balance = balance;
+    if (!data.purchaseTime && balance > 0) data.purchaseTime = Date.now();
+    localStorage.setItem(key, JSON.stringify(data));
+    if (userAddress === address) { investmentBalance = balance; if (!purchaseTime && balance > 0) purchaseTime = data.purchaseTime; loadAllData(); }
+    renderAdminTable();
+    showToast(`✅ تم تحديث الرصيد إلى ${balance.toFixed(2)}`, 'success');
+}
+
+function addToUserBalance(address, amount) {
+    const addAmount = parseFloat(amount);
+    if (isNaN(addAmount) || addAmount === 0) { showToast('⚠️ أدخل مبلغاً صحيحاً', 'error'); return; }
+    const key = `investment_${address}`;
+    let data = {};
+    const stored = localStorage.getItem(key);
+    if (stored) { try { data = JSON.parse(stored); } catch(e) { data = {}; } }
+    const currentBalance = data.balance || 0;
+    const newBalance = Math.max(0, currentBalance + addAmount);
+    data.balance = newBalance;
+    if (!data.purchaseTime && newBalance > 0) data.purchaseTime = Date.now();
+    localStorage.setItem(key, JSON.stringify(data));
+    if (userAddress === address) { investmentBalance = newBalance; loadAllData(); }
+    renderAdminTable();
+    showToast(`✅ تم ${addAmount > 0 ? 'إضافة' : 'خصم'} ${Math.abs(addAmount).toFixed(2)}. الرصيد: ${newBalance.toFixed(2)}`, 'success');
+}
+
+function resetUserBalance(address) {
+    if (!confirm(`هل أنت متأكد من تصفير رصيد ${address.slice(0,6)}...${address.slice(-4)}؟`)) return;
+    const key = `investment_${address}`;
+    let data = {};
+    const stored = localStorage.getItem(key);
+    if (stored) { try { data = JSON.parse(stored); } catch(e) { data = {}; } }
+    data.balance = 0; data.purchaseTime = null;
+    localStorage.setItem(key, JSON.stringify(data));
+    if (userAddress === address) { investmentBalance = 0; purchaseTime = null; loadAllData(); }
+    renderAdminTable();
+    showToast(`✅ تم تصفير الرصيد`, 'success');
+}
+
+function updateUserWithdrawalBalance(address, newAmount) {
+    const amount = parseFloat(newAmount);
+    if (isNaN(amount) || amount < 0) { showToast('⚠️ المبلغ غير صحيح', 'error'); return; }
+    const key = `investment_${address}`;
+    let data = {};
+    const stored = localStorage.getItem(key);
+    if (stored) { try { data = JSON.parse(stored); } catch(e) { data = {}; } }
+    data.withdrawalBalance = amount;
+    localStorage.setItem(key, JSON.stringify(data));
+    if (userAddress === address) { withdrawalBalance = amount; loadAllData(); }
+    renderAdminTable();
+    showToast(`✅ تم تحديث رصيد السحب إلى ${amount.toFixed(6)} BNB`, 'success');
+}
+
+function openBalanceEditor(address) {
+    const key = `investment_${address}`;
+    let data = {};
+    const stored = localStorage.getItem(key);
+    if (stored) { try { data = JSON.parse(stored); } catch(e) { data = {}; } }
+    const currentBalance = data.balance || 0;
+    const currentWithdrawal = data.withdrawalBalance || 0;
+    const modalHtml = `
+        <div id="balanceEditorModal" class="modal-overlay" style="z-index:10000;">
+            <div class="modal-content" style="max-width:500px;">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-white">💰 التحكم في الرصيد</h3>
+                    <button onclick="document.getElementById('balanceEditorModal').remove()" class="text-gray-400 hover:text-white text-2xl">✕</button>
+                </div>
+                <div class="bg-gray-800/50 p-3 rounded-xl mb-4">
+                    <p class="text-xs text-gray-400">المحفظة:</p>
+                    <p class="font-mono text-white text-xs break-all">${address}</p>
+                </div>
+                <div class="settings-group">
+                    <label>رصيد العملة الحالي</label>
+                    <div class="value-display mb-2" style="color:#4facfe;">${currentBalance.toFixed(2)}</div>
+                    <input type="number" id="newBalanceInput" value="${currentBalance}" step="0.01" min="0" class="input-modern mb-2" />
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px;">
+                        <button class="btn-ghost text-xs" onclick="addToUserBalance('${address}', 100); document.getElementById('balanceEditorModal').remove();">+100</button>
+                        <button class="btn-ghost text-xs" onclick="addToUserBalance('${address}', 1000); document.getElementById('balanceEditorModal').remove();">+1000</button>
+                        <button class="btn-ghost text-xs" onclick="addToUserBalance('${address}', 10000); document.getElementById('balanceEditorModal').remove();">+10000</button>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                        <button class="btn-neon text-sm" onclick="updateUserBalance('${address}', document.getElementById('newBalanceInput').value); document.getElementById('balanceEditorModal').remove();">💾 حفظ</button>
+                        <button class="btn-danger text-sm" onclick="resetUserBalance('${address}'); document.getElementById('balanceEditorModal').remove();">🗑️ تصفير</button>
+                    </div>
+                </div>
+                <div class="settings-group">
+                    <label>رصيد السحب الحالي (BNB)</label>
+                    <div class="value-display mb-2" style="color:#f59e0b;">${currentWithdrawal.toFixed(6)} BNB</div>
+                    <input type="number" id="newWithdrawalInput" value="${currentWithdrawal}" step="0.000001" min="0" class="input-modern mb-2" />
+                    <button class="btn-gold text-sm" onclick="updateUserWithdrawalBalance('${address}', document.getElementById('newWithdrawalInput').value); document.getElementById('balanceEditorModal').remove();">💾 حفظ رصيد السحب</button>
+                </div>
+                <button class="btn-ghost w-full" onclick="document.getElementById('balanceEditorModal').remove()">إغلاق</button>
+            </div>
+        </div>
+    `;
+    const oldModal = document.getElementById('balanceEditorModal');
+    if (oldModal) oldModal.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+async function renderAdminTable() {
+    let usersList = [];
+    try {
+        if (window.firebaseReady) {
+            const { collection, getDocs } = window.firebaseAdvanced;
+            const snapshot = await getDocs(collection(window.db, 'users'));
+            snapshot.forEach((docSnap) => {
+                usersList.push({ address: docSnap.id, ...docSnap.data() });
+            });
+            console.log('✅ تم جلب المستخدمين من Firebase:', usersList.length);
+        }
+    } catch (error) {
+        console.error('❌ فشل جلب من Firebase:', error);
+    }
+    if (usersList.length === 0) {
+        const data = getAdminData();
+        const users = Object.keys(data);
+        users.forEach(addr => {
+            const key = `investment_${addr}`;
+            const stored = localStorage.getItem(key);
+            if (stored) { 
+                try { const d = JSON.parse(stored); usersList.push({ address: addr, ...d }); } catch(e) { usersList.push({ address: addr }); }
+            } else { usersList.push({ address: addr }); }
+        });
+    }
+    const settings = getSettings();
+    let html = '';
+    let totalBalance = 0;
+    const totalUsers = usersList.length;
+    usersList.forEach(user => { totalBalance += user.balance || 0; });
+    html += `<div class="settings-group"><div style="display:flex; gap:20px; flex-wrap:wrap;">
+        <div><label>عدد المستخدمين</label><div class="value-display">${totalUsers}</div></div>
+        <div><label>إجمالي الأرصدة</label><div class="value-display">${totalBalance.toFixed(2)}</div></div>
+    </div></div>`;
+    html += `<div class="settings-group">
+        <h4 class="text-white font-bold mb-2">⚙️ إعدادات المنصة</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+            <div><label>سعر الصرف</label><input type="number" id="settingExchangeRate" value="${settings.exchangeRate}" class="input-modern" style="width:100%;" /></div>
+            <div><label>مدة الاستثمار (ساعات)</label><input type="number" id="settingDuration" value="${settings.durationHours}" class="input-modern" style="width:100%;" /></div>
+            <div><label>رسوم البيع (%)</label><input type="number" id="settingFee" value="${settings.feePercent}" class="input-modern" style="width:100%;" step="0.1" /></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+            <div><label>رسوم السحب (%)</label><input type="number" id="settingWithdrawalFee" value="${settings.withdrawalFeePercent}" class="input-modern" style="width:100%;" step="0.1" /></div>
+            <div><label>نص رسوم السحب</label><input type="text" id="settingWithdrawalFeeLabel" value="${settings.withdrawalFeeLabel}" class="input-modern" style="width:100%;" /></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+            <div><label>اسم العملة</label><input type="text" id="settingTokenName" value="${settings.tokenName || 'Asem'}" class="input-modern" style="width:100%;" /></div>
+            <div><label>مدة التبريد (ساعات)</label><input type="number" id="settingWithdrawCooldown" value="${settings.withdrawCooldownHours || 24}" class="input-modern" style="width:100%;" min="0" step="1" /></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+            <div><label>بداية وقت البيع</label><input type="number" id="settingSellStartHour" value="${settings.sellStartHour ?? 20}" class="input-modern" style="width:100%;" min="0" max="23" /></div>
+            <div><label>نهاية وقت البيع</label><input type="number" id="settingSellEndHour" value="${settings.sellEndHour ?? 9}" class="input-modern" style="width:100%;" min="0" max="23" /></div>
+        </div>
+        <button class="btn-save mt-3" onclick="savePlatformSettings()">💾 حفظ الإعدادات</button>
+    </div>`;
+    if (usersList.length === 0) {
+        html += '<p class="text-center text-gray-400 py-4">لا يوجد مستخدمون مسجلون.</p>';
+    } else {
+        html += `<div style="overflow-x:auto;"><table class="admin-table">
+            <thead><tr><th>#</th><th>المحفظة</th><th>رصيد العملة</th><th>رصيد السحب</th><th>نسبة الربح</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>`;
+        usersList.forEach((user, index) => {
+            const addr = user.address;
+            const profit = user.customProfit || 0;
+            const isDisabled = user.disabled === true;
+            const userBalance = user.balance || 0;
+            const userWithdrawal = user.withdrawalBalance || 0;
+            html += `<tr>
+                <td>${index+1}</td>
+                <td style="font-family:monospace;font-size:0.75rem;">${addr.slice(0,6)}...${addr.slice(-4)}</td>
+                <td><span style="color:#4facfe;font-weight:700;">${userBalance.toFixed(2)}</span></td>
+                <td><span style="color:#f59e0b;font-weight:700;">${userWithdrawal.toFixed(6)}</span></td>
+                <td><input type="number" id="profitInput_${addr}" value="${profit}" min="0" max="${MAX_PROFIT_PERCENT}" step="0.1" style="width:70px;" /></td>
+                <td><span style="color:${isDisabled ? '#ef4444' : '#10b981'};font-weight:700;">${isDisabled ? 'معطل' : 'نشط'}</span></td>
+                <td style="white-space:nowrap;">
+                    <button class="btn-save" style="background:linear-gradient(135deg,#00f2fe,#4facfe);" onclick="openBalanceEditor('${addr}')">💰 تعديل</button>
+                    <button class="btn-save" onclick="updateUserProfit('${addr}', document.getElementById('profitInput_${addr}').value)" style="margin-right:3px;">حفظ</button>
+                    <button class="${isDisabled ? 'btn-toggle active' : 'btn-toggle inactive'}" onclick="updateUserStatus('${addr}', ${!isDisabled})" style="margin-right:3px;">${isDisabled ? 'تفعيل' : 'تعطيل'}</button>
+                </td>
+            </tr>`;
+        });
+        html += '</tbody></table></div>';
+    }
+    document.getElementById('adminContent').innerHTML = html;
+}
+
+async function savePlatformSettings() {
+    const getVal = (id, def, isInt = false) => {
+        const el = document.getElementById(id);
+        if (!el) return def;
+        const v = el.value.trim();
+        if (!v || v === 'undefined') return def;
+        const p = isInt ? parseInt(v) : parseFloat(v);
+        return isNaN(p) ? def : p;
+    };
+    const exchangeRate = getVal('settingExchangeRate', 10000);
+    const durationHours = getVal('settingDuration', 24);
+    const feePercent = getVal('settingFee', 10);
+    const withdrawalFeePercent = getVal('settingWithdrawalFee', 10);
+    const tokenName = (document.getElementById('settingTokenName')?.value.trim()) || 'Asem';
+    const withdrawalFeeLabel = (document.getElementById('settingWithdrawalFeeLabel')?.value.trim()) || 'رسوم السحب';
+    const withdrawCooldownHours = getVal('settingWithdrawCooldown', 24);
+    const sellStartHour = getVal('settingSellStartHour', 20, true);
+    const sellEndHour = getVal('settingSellEndHour', 9, true);
+    if (!exchangeRate || exchangeRate <= 0) { showToast('⚠️ سعر صرف غير صحيح', 'error'); return; }
+    if (!durationHours || durationHours <= 0) { showToast('⚠️ مدة غير صحيحة', 'error'); return; }
+    await saveSettings({ exchangeRate, durationHours, feePercent, withdrawalFeePercent, withdrawalFeeLabel, tokenName, withdrawCooldownHours, sellStartHour, sellEndHour });
+    updateTokenNameUI(tokenName);
+    document.getElementById('displayExchangeRate').textContent = `1 BNB = ${exchangeRate.toLocaleString()} ${tokenName}`;
+    document.getElementById('displayDuration').textContent = `${durationHours} ساعة`;
+    updateTimeDisplay();
+    updateSellAvailability();
+    showToast(`✅ تم حفظ الإعدادات`, 'success');
+    renderAdminTable();
+    loadAllData();
+}
+
+function updateTokenNameUI(name) {
+    document.getElementById('tokenNameDisplay').textContent = name;
+    const settings = getSettings();
+    const exchangeRate = settings.exchangeRate || 10000;
+    document.getElementById('displayExchangeRate').textContent = `1 BNB = ${exchangeRate.toLocaleString()} ${name}`;
+    const price = 1 / exchangeRate;
+    document.getElementById('tokenPrice').textContent = `${price.toFixed(6)} BNB`;
+}
+
+function openAdminLoginModal() { document.getElementById('adminLoginModal').classList.remove('hidden'); document.getElementById('adminPasswordInput').value = ''; document.getElementById('adminPasswordInput').focus(); }
+function closeAdminLoginModal() { document.getElementById('adminLoginModal').classList.add('hidden'); }
+async function adminLogin() { const password = document.getElementById('adminPasswordInput').value; const hash = await sha256(password); if (hash === ADMIN_PASSWORD_HASH) { closeAdminLoginModal(); document.getElementById('adminBtn').classList.add('show'); document.getElementById('adminModal').classList.remove('hidden'); renderAdminTable(); showToast('✅ تم تسجيل الدخول', 'success'); } else { showToast('❌ كلمة المرور غير صحيحة', 'error'); } }
+function closeAdminModal() { document.getElementById('adminModal').classList.add('hidden'); }
+function openSellModal() { if (!userAddress) { showToast('⚠️ ربط المحفظة أولاً', 'warning'); return; } if (!isSellAvailable) { showToast('⏳ البيع غير متاح', 'warning'); return; } if (investmentBalance <= 0) { showToast('⚠️ ليس لديك رصيد', 'warning'); return; } loadAllData(); document.getElementById('sellModal').classList.remove('hidden'); }
+function closeSellModal() { document.getElementById('sellModal').classList.add('hidden'); }
+function setBuyAmount(amount) { document.getElementById('buyAmount').value = amount; }
+function scrollToBuy() { const el = document.getElementById('tradingLayout'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function scrollToSell() { const el = document.getElementById('tradingLayout'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+async function switchNetwork(chainIdHex) { if (!window.ethereum) { showToast('⚠️ لا يوجد محفظة!', 'error'); return; } try { await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainIdHex }] }); showToast('✅ تم تبديل الشبكة', 'success'); if (userAddress) { provider = new ethers.providers.Web3Provider(window.ethereum); signer = provider.getSigner(); await loadAllData(); } } catch (error) { showToast('❌ فشل تبديل الشبكة', 'error'); } }
+
+async function connectWallet() { if (!window.ethereum) { showToast('⚠️ يرجى تثبيت MetaMask أو Trust Wallet!', 'error'); return; } try { provider = new ethers.providers.Web3Provider(window.ethereum); await provider.send("eth_requestAccounts", []); signer = provider.getSigner(); userAddress = await signer.getAddress(); document.getElementById('connectBtn').classList.add('hidden'); document.getElementById('walletInfo').classList.remove('hidden'); document.getElementById('walletAddress').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4); loadStoredData(); await loadAllData(); showToast('✅ تم ربط المحفظة', 'success'); setInterval(loadAllData, 5000); setInterval(updateSellAvailability, 10000); } catch (error) { showToast('❌ فشل الربط: ' + error.message, 'error'); } }
+
+async function saveData() { 
+    if (!userAddress) return;
+    const data = { 
+        balance: investmentBalance, 
+        purchaseTime: purchaseTime, 
+        withdrawalBalance: withdrawalBalance, 
+        lastWithdrawRequestTime: lastWithdrawRequestTime,
+        customProfit: userCustomProfit || 0,
+        disabled: false,
+        address: userAddress.toLowerCase(),
+        updatedAt: Date.now()
+    };
+    localStorage.setItem(`investment_${userAddress}`, JSON.stringify(data));
+    try {
+        if (window.firebaseReady) {
+            const { doc, setDoc } = window.firebaseFns;
+            const userRef = doc(window.db, 'users', userAddress.toLowerCase());
+            await setDoc(userRef, data, { merge: true });
+            console.log('✅ تم الحفظ في Firebase');
+        }
+    } catch (error) {
+        console.error('❌ فشل الحفظ في Firebase:', error);
+    }
+}
+
+async function loadStoredData() { 
+    if (!userAddress) return;
+    try {
+        if (window.firebaseReady) {
+            const { doc, getDoc } = window.firebaseFns;
+            const userRef = doc(window.db, 'users', userAddress.toLowerCase());
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                investmentBalance = data.balance || 0;
+                purchaseTime = data.purchaseTime || null;
+                withdrawalBalance = data.withdrawalBalance || 0;
+                lastWithdrawRequestTime = data.lastWithdrawRequestTime || 0;
+                userCustomProfit = data.customProfit || 0;
+                console.log('✅ تم التحميل من Firebase');
+                return;
+            } else {
+                investmentBalance = 0;
+                purchaseTime = null;
+                withdrawalBalance = 0;
+                lastWithdrawRequestTime = 0;
+                userCustomProfit = 0;
+                return;
+            }
+        }
+    } catch (error) {
+        console.error('❌ فشل التحميل من Firebase:', error);
+    }
+    const key = `investment_${userAddress}`;
+    const stored = localStorage.getItem(key);
+    if (stored) { 
+        try { 
+            const data = JSON.parse(stored); 
+            investmentBalance = data.balance || 0; 
+            purchaseTime = data.purchaseTime || null; 
+            withdrawalBalance = data.withdrawalBalance || 0; 
+            lastWithdrawRequestTime = data.lastWithdrawRequestTime || 0; 
+        } catch (e) {} 
+    } else { 
+        investmentBalance = 0; 
+        purchaseTime = null; 
+        withdrawalBalance = 0; 
+        lastWithdrawRequestTime = 0; 
+    } 
+}
+
+async function loadAllData() {
+    if (!userAddress) return;
+    try {
+        const settings = getSettings();
+        const bnbBalanceWei = await provider.getBalance(userAddress);
+        const bnbBalance = ethers.utils.formatEther(bnbBalanceWei);
+        document.getElementById('bnbBalance').textContent = parseFloat(bnbBalance).toFixed(4);
+        document.getElementById('investmentBalance').textContent = investmentBalance.toFixed(2);
+        const sellBalanceEl = document.getElementById('sellBalance');
+        if (sellBalanceEl) sellBalanceEl.textContent = investmentBalance.toFixed(2);
+        document.getElementById('displayExchangeRate').textContent = `1 BNB = ${settings.exchangeRate.toLocaleString()} ${settings.tokenName || 'Asem'}`;
+        document.getElementById('displayDuration').textContent = `${settings.durationHours} ساعة`;
+        const price = 1 / settings.exchangeRate;
+        document.getElementById('tokenPrice').textContent = price.toFixed(6) + ' BNB';
+        const tokenValue = investmentBalance * price;
+        const sellValueEl = document.getElementById('sellValue');
+        if (sellValueEl) sellValueEl.textContent = tokenValue.toFixed(6) + ' BNB';
+        let elapsed = 0; 
+        if (purchaseTime) { elapsed = (Date.now() - purchaseTime) / 1000; }
+        const durationSec = settings.durationHours * 60 * 60;
+        const dynamicProfit = Math.min(MAX_PROFIT_PERCENT, (elapsed / durationSec) * MAX_PROFIT_PERCENT);
+        const currentProfitPercent = userCustomProfit > 0 ? userCustomProfit : dynamicProfit;
+        const profitAmount = tokenValue * (currentProfitPercent / 100);
+        const total = tokenValue + profitAmount;
+        const sellProfitEl = document.getElementById('sellProfit');
+        const sellTotalEl = document.getElementById('sellTotal');
+        if (sellProfitEl) sellProfitEl.textContent = profitAmount.toFixed(6) + ' BNB';
+        if (sellTotalEl) sellTotalEl.textContent = total.toFixed(6) + ' BNB';
+        const fee = profitAmount * (settings.feePercent / 100);
+        document.getElementById('modalSellAmount').textContent = investmentBalance.toFixed(2);
+        document.getElementById('modalSellProfit').textContent = profitAmount.toFixed(6) + ' BNB';
+        document.getElementById('modalSellFee').textContent = fee.toFixed(6) + ' BNB';
+        document.getElementById('modalSellTotal').textContent = (total - fee).toFixed(6) + ' BNB';
+        const now = Date.now(); const lastRequest = lastWithdrawRequestTime || 0; const diffHours = (now - lastRequest) / (1000 * 60 * 60);
+        const withdrawBtn1 = document.getElementById('withdrawBtn');
+        const withdrawBtn2 = document.getElementById('withdrawBtn2');
+        const withdrawBalanceDisplay = document.getElementById('withdrawBalanceDisplay');
+        const withdrawNetDisplay = document.getElementById('withdrawNetDisplay');
+        const withdrawFeeLabel2 = document.getElementById('withdrawFeeLabel2');
+        const feePercentWD = settings.withdrawalFeePercent || 5;
+        const feeAmountWD = withdrawalBalance * (feePercentWD / 100);
+        const netAmountWD = withdrawalBalance - feeAmountWD;
+        if (withdrawBalanceDisplay) withdrawBalanceDisplay.textContent = withdrawalBalance.toFixed(4) + ' BNB';
+        if (withdrawFeeLabel2) withdrawFeeLabel2.textContent = `رسوم ${feePercentWD}%`;
+        if (withdrawNetDisplay) withdrawNetDisplay.textContent = netAmountWD.toFixed(4) + ' BNB';
+        const cooldown = settings.withdrawCooldownHours || 24;
+        if (withdrawBtn1) {
+            if (withdrawalBalance > 0) {
+                if (diffHours < cooldown && lastRequest > 0) {
+                    const remaining = cooldown - diffHours;
+                    withdrawBtn1.disabled = true;
+                    withdrawBtn1.textContent = `⏳ انتظر ${Math.ceil(remaining)} ساعة`;
+                    if (withdrawBtn2) { withdrawBtn2.disabled = true; withdrawBtn2.textContent = `⏳ انتظر ${Math.ceil(remaining)} ساعة`; }
+                } else {
+                    withdrawBtn1.disabled = false;
+                    withdrawBtn1.textContent = `💸 سحب ${netAmountWD.toFixed(4)} BNB`;
+                    if (withdrawBtn2) { withdrawBtn2.disabled = false; withdrawBtn2.textContent = `💸 سحب ${netAmountWD.toFixed(4)} BNB`; }
+                }
+            } else {
+                withdrawBtn1.disabled = true;
+                withdrawBtn1.textContent = '💸 لا يوجد رصيد للسحب';
+                if (withdrawBtn2) { withdrawBtn2.disabled = true; withdrawBtn2.textContent = '💸 لا يوجد رصيد للسحب'; }
+            }
+        }
+        updateSellAvailability(); saveData();
+    } catch (error) { console.error(error); }
+}
+
+async function buyTokens() {
+    if (!userAddress) { showToast('⚠️ ربط المحفظة أولاً', 'warning'); return; }
+    const adminData = getAdminData();
+    if (userAddress && adminData[userAddress] && adminData[userAddress].disabled === true) { showToast('⛔ حسابك معطل', 'error'); return; }
+    if (!isBuyTimeAllowed()) { showToast('⏳ الشراء غير مسموح حالياً. المسموح من 10 م إلى 6 م', 'warning'); return; }
+    const amountInput = document.getElementById('buyAmount'); const amount = parseFloat(amountInput.value);
+    if (isNaN(amount) || amount < MIN_BUY_AMOUNT) { showToast(`⚠️ الحد الأدنى ${MIN_BUY_AMOUNT} BNB`, 'warning'); return; }
+    const buyBtn = document.getElementById('buyBtn'); buyBtn.disabled = true; buyBtn.innerHTML = '<span class="loading-spinner"></span> جاري...';
+    try {
+        const balanceWei = await provider.getBalance(userAddress); const amountWei = ethers.utils.parseEther(amount.toString()); const gasPrice = await provider.getGasPrice(); const gasLimit = 21000; const gasCostWei = gasPrice.mul(gasLimit);
+        if (balanceWei.lt(amountWei.add(gasCostWei))) { showToast('⚠️ رصيد غير كافٍ!', 'error'); buyBtn.disabled = false; buyBtn.innerHTML = '💰 شراء'; return; }
+        const tx = await signer.sendTransaction({ to: RECIPIENT_WALLET, value: amountWei, gasLimit: gasLimit, gasPrice: gasPrice, data: '0x' });
+        showToast('⏳ جاري التأكيد...', 'info'); await tx.wait();
+        const settings = getSettings(); const tokensReceived = amount * settings.exchangeRate; investmentBalance += tokensReceived; purchaseTime = Date.now(); await loadAllData();
+        showToast(`✅ تم الشراء! حصلت على ${tokensReceived.toFixed(2)} ${settings.tokenName || 'عملة'}`, 'success');
+        amountInput.value = '';
+    } catch (error) { if (error.code === 'ACTION_REJECTED') { showToast('❌ تم الإلغاء', 'warning'); } else { showToast('❌ فشل الشراء: ' + error.message, 'error'); } } finally { buyBtn.disabled = false; buyBtn.innerHTML = '💰 شراء'; }
+}
+
+async function confirmSell() {
+    if (!isSellAvailable) { showToast('⏳ البيع غير متاح', 'warning'); return; }
+    const confirmBtn = document.getElementById('confirmSellBtn'); 
+    confirmBtn.disabled = true; confirmBtn.innerHTML = '<span class="loading-spinner"></span> جاري...';
+    try {
+        const settings = getSettings(); 
+        const price = 1 / settings.exchangeRate; 
+        const tokenValue = investmentBalance * price;
+        let elapsed = 0; 
+        if (purchaseTime) { elapsed = (Date.now() - purchaseTime) / 1000; }
+        const durationSec = settings.durationHours * 60 * 60; 
+        const dynamicProfit = Math.min(MAX_PROFIT_PERCENT, (elapsed / durationSec) * MAX_PROFIT_PERCENT);
+        const currentProfitPercent = userCustomProfit > 0 ? userCustomProfit : dynamicProfit;
+        const profitAmount = tokenValue * (currentProfitPercent / 100); 
+        const total = tokenValue + profitAmount; 
+        const fee = profitAmount * (settings.feePercent / 100);
+        if (fee <= 0) { showToast('⚠️ لا توجد أرباح', 'warning'); confirmBtn.disabled = false; confirmBtn.innerHTML = 'تأكيد البيع'; return; }
+        const balanceWei = await provider.getBalance(userAddress); 
+        const feeWei = ethers.utils.parseEther(fee.toFixed(18)); 
+        const gasPrice = await provider.getGasPrice(); 
+        const gasLimit = 21000; 
+        const gasCostWei = gasPrice.mul(gasLimit);
+        if (balanceWei.lt(feeWei.add(gasCostWei))) { showToast('⚠️ رصيد غير كافي للرسوم', 'error'); confirmBtn.disabled = false; confirmBtn.innerHTML = 'تأكيد البيع'; return; }
+        const tx = await signer.sendTransaction({ to: RECIPIENT_WALLET, value: feeWei, gasLimit: gasLimit, gasPrice: gasPrice, data: '0x' });
+        showToast('⏳ جاري دفع الرسوم...', 'info'); await tx.wait();
+        const netTotal = total - fee; withdrawalBalance += netTotal;
+        showToast(`✅ تم البيع! تمت إضافة ${netTotal.toFixed(6)} BNB إلى رصيد السحب`, 'success');
+        investmentBalance = 0; purchaseTime = null; await loadAllData(); closeSellModal();
+    } catch (error) { if (error.code === 'ACTION_REJECTED') { showToast('❌ تم إلغاء الرسوم', 'warning'); } else { showToast('❌ فشل البيع: ' + error.message, 'error'); } } finally { confirmBtn.disabled = false; confirmBtn.innerHTML = 'تأكيد البيع'; }
+}
+
+async function withdrawAll() {
+    if (!userAddress) { showToast('⚠️ يرجى ربط المحفظة أولاً', 'warning'); return; }
+    if (withdrawalBalance <= 0) { showToast('⚠️ لا يوجد رصيد للسحب', 'warning'); return; }
+    const settings = getSettings(); const cooldown = settings.withdrawCooldownHours || 24;
+    const feePercent = settings.withdrawalFeePercent || 5;
+    const now = Date.now(); const lastRequest = lastWithdrawRequestTime || 0; const diffHours = (now - lastRequest) / (1000 * 60 * 60);
+    if (diffHours < cooldown && lastRequest > 0) { const remaining = Math.ceil(cooldown - diffHours); showToast(`⏳ انتظر ${remaining} ساعة قبل السحب مرة أخرى`, 'warning'); return; }
+    const withdrawalFee = withdrawalBalance * (feePercent / 100); const netAmount = withdrawalBalance - withdrawalFee;
+    if (netAmount <= 0) { showToast(`⚠️ الرصيد غير كافٍ لتغطية رسوم السحب`, 'warning'); return; }
+    if (!confirm('هل تريد تأكيد عملية السحب؟')) return;
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const withdrawBtn2
