@@ -555,12 +555,68 @@ const ENCRYPTION_KEY = 'MySuperSecretKey2024!@#$';
 const MAX_PROFIT_PERCENT = 5000;
 const MIN_BUY_AMOUNT = 0.5;
 
-function getSettings() {
+let cachedSettings = null;
+let lastSettingsFetch = 0;
+
+async function getSettings() {
+    // لو في cache حديث (أقل من 30 ثانية) استخدمه
+    if (cachedSettings && (Date.now() - lastSettingsFetch) < 30000) {
+        return cachedSettings;
+    }
+    
+    // الافتراضي
+    const defaults = { exchangeRate: 10000, durationHours: 24, feePercent: 10, withdrawalFeePercent: 10, withdrawalFeeLabel: 'رسوم السحب', tokenName: 'عملة', withdrawCooldownHours: 24, sellStartHour: 20, sellEndHour: 9 };
+    
+    // جرب Firebase الأول
+    try {
+        if (window.firebaseReady) {
+            const { doc, getDoc } = window.firebaseFns;
+            const settingsRef = doc(window.db, 'settings', 'platform');
+            const settingsSnap = await getDoc(settingsRef);
+            
+            if (settingsSnap.exists()) {
+                cachedSettings = { ...defaults, ...settingsSnap.data() };
+                lastSettingsFetch = Date.now();
+                return cachedSettings;
+            }
+        }
+    } catch (error) {
+        console.error('فشل جلب الإعدادات من Firebase:', error);
+    }
+    
+    // احتياطي من localStorage
     const raw = localStorage.getItem('platformSettings');
-    if (!raw) return { exchangeRate: 10000, durationHours: 24, feePercent: 10, withdrawalFeePercent: 10, withdrawalFeeLabel: 'رسوم السحب', tokenName: 'عملة', withdrawCooldownHours: 24, sellStartHour: 20, sellEndHour: 9 };
-    try { const parsed = JSON.parse(raw); return parsed; } catch(e) { return { exchangeRate: 10000, durationHours: 24, feePercent: 10, withdrawalFeePercent: 10, withdrawalFeeLabel: 'رسوم السحب', tokenName: 'عملة', withdrawCooldownHours: 24, sellStartHour: 20, sellEndHour: 9 }; }
+    if (raw) {
+        try { 
+            cachedSettings = JSON.parse(raw); 
+            lastSettingsFetch = Date.now();
+            return cachedSettings; 
+        } catch(e) {}
+    }
+    
+    cachedSettings = defaults;
+    return defaults;
 }
-function saveSettings(settings) { localStorage.setItem('platformSettings', JSON.stringify(settings)); }
+async function saveSettings(settings) { 
+    // حفظ محلي احتياطي
+    localStorage.setItem('platformSettings', JSON.stringify(settings));
+    
+    // مسح الـ cache عشان يتحدث فوراً
+    cachedSettings = null;
+    lastSettingsFetch = 0;
+    
+    // حفظ في Firebase (يظهر لكل المستخدمين)
+    try {
+        if (window.firebaseReady) {
+            const { doc, setDoc } = window.firebaseFns;
+            const settingsRef = doc(window.db, 'settings', 'platform');
+            await setDoc(settingsRef, settings, { merge: true });
+            console.log('✅ تم حفظ الإعدادات في Firebase');
+        }
+    } catch (error) {
+        console.error('❌ فشل حفظ الإعدادات في Firebase:', error);
+    }
+}
 
 let provider, signer, userAddress = null, investmentBalance = 0, purchaseTime = null, profitPercent = 0, isSellAvailable = false, userCustomProfit = 0, isUserDisabled = false, tapCount = 0, tapTimer = null, withdrawalBalance = 0, lastWithdrawRequestTime = 0;let usersUnsubscribe = null;
 let currentChartTab = '1H';
@@ -1078,7 +1134,7 @@ async function renderAdminTable() {
     }
     document.getElementById('adminContent').innerHTML = html;
 }
-function savePlatformSettings() {
+async function savePlatformSettings() {
     const exchangeRate = parseFloat(document.getElementById('settingExchangeRate').value);
     const durationHours = parseFloat(document.getElementById('settingDuration').value);
     const feePercent = parseFloat(document.getElementById('settingFee').value);
@@ -1090,7 +1146,7 @@ function savePlatformSettings() {
     const sellEndHour = parseInt(document.getElementById('settingSellEndHour').value) || 9;
     if (!exchangeRate || exchangeRate <= 0) { showToast('⚠️ سعر صرف غير صحيح', 'error'); return; }
     if (!durationHours || durationHours <= 0) { showToast('⚠️ مدة غير صحيحة', 'error'); return; }
-    saveSettings({ exchangeRate, durationHours, feePercent, withdrawalFeePercent, withdrawalFeeLabel, tokenName, withdrawCooldownHours, sellStartHour, sellEndHour });
+    await await saveSettings({ exchangeRate, durationHours, feePercent, withdrawalFeePercent, withdrawalFeeLabel, tokenName, withdrawCooldownHours, sellStartHour, sellEndHour });
     updateTokenNameUI(tokenName);
     document.getElementById('displayExchangeRate').textContent = `1 BNB = ${exchangeRate.toLocaleString()} ${tokenName}`;
     document.getElementById('displayDuration').textContent = `${durationHours} ساعة`;
