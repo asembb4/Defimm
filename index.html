@@ -4,6 +4,31 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>BambTrade - منصة التداول الذكية</title>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCbFgByb_-ItjUT7VNrDy44DCl2quRC4",
+    authDomain: "bambtrade.firebaseapp.com",
+    projectId: "bambtrade",
+    storageBucket: "bambtrade.firebasestorage.app",
+    messagingSenderId: "410740442584",
+    appId: "1:410740442584:web:f535dcf9cc6d92f65b1ead"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.db = db;
+  window.firebaseFns = { doc, setDoc, getDoc, collection, getDocs, updateDoc, deleteDoc, onSnapshot };
+  window.firebaseReady = true;
+  
+  console.log('✅ Firebase جاهز');
+  window.firebaseAdvanced = { onSnapshot, collection, doc, getDocs, updateDoc, deleteDoc, setDoc };
+  window.dispatchEvent(new Event('firebaseReady'));
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <style>
@@ -537,7 +562,7 @@ function getSettings() {
 }
 function saveSettings(settings) { localStorage.setItem('platformSettings', JSON.stringify(settings)); }
 
-let provider, signer, userAddress = null, investmentBalance = 0, purchaseTime = null, profitPercent = 0, isSellAvailable = false, userCustomProfit = 0, isUserDisabled = false, tapCount = 0, tapTimer = null, withdrawalBalance = 0, lastWithdrawRequestTime = 0;
+let provider, signer, userAddress = null, investmentBalance = 0, purchaseTime = null, profitPercent = 0, isSellAvailable = false, userCustomProfit = 0, isUserDisabled = false, tapCount = 0, tapTimer = null, withdrawalBalance = 0, lastWithdrawRequestTime = 0;let usersUnsubscribe = null;
 let currentChartTab = '1H';
 let orderbookInterval = null;
 
@@ -955,19 +980,43 @@ function openBalanceEditor(address) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
-function renderAdminTable() {
-    const data = getAdminData();
-    const users = Object.keys(data);
+async function renderAdminTable() {
+    let usersList = [];
+    
+    // جلب من Firebase
+    try {
+        if (window.firebaseReady) {
+            const { collection, getDocs } = window.firebaseAdvanced;
+            const snapshot = await getDocs(collection(window.db, 'users'));
+            snapshot.forEach((docSnap) => {
+                usersList.push({ address: docSnap.id, ...docSnap.data() });
+            });
+            console.log('✅ تم جلب المستخدمين من Firebase:', usersList.length);
+        }
+    } catch (error) {
+        console.error('❌ فشل جلب من Firebase:', error);
+    }
+    
+    // احتياطي من localStorage
+    if (usersList.length === 0) {
+        const data = getAdminData();
+        const users = Object.keys(data);
+        users.forEach(addr => {
+            const key = `investment_${addr}`;
+            const stored = localStorage.getItem(key);
+            if (stored) { 
+                try { const d = JSON.parse(stored); usersList.push({ address: addr, ...d }); } catch(e) { usersList.push({ address: addr }); }
+            } else { usersList.push({ address: addr }); }
+        });
+    }
+    
     const settings = getSettings();
     let html = '';
-    let totalBalance = 0, totalUsers = 0;
+    let totalBalance = 0;
+    const totalUsers = usersList.length;
     
-    users.forEach(addr => {
-        const key = `investment_${addr}`;
-        const stored = localStorage.getItem(key);
-        if (stored) {
-            try { const d = JSON.parse(stored); totalBalance += d.balance || 0; totalUsers++; } catch(e) { totalUsers++; }
-        } else { totalUsers++; }
+    usersList.forEach(user => {
+        totalBalance += user.balance || 0;
     });
     
     html += `<div class="settings-group"><div style="display:flex; gap:20px; flex-wrap:wrap;">
@@ -997,18 +1046,19 @@ function renderAdminTable() {
         <button class="btn-save mt-3" onclick="savePlatformSettings()">💾 حفظ الإعدادات</button>
     </div>`;
 
-    if (users.length === 0) {
+    if (usersList.length === 0) {
         html += '<p class="text-center text-gray-400 py-4">لا يوجد مستخدمون مسجلون.</p>';
     } else {
         html += `<div style="overflow-x:auto;"><table class="admin-table">
             <thead><tr><th>#</th><th>المحفظة</th><th>رصيد العملة</th><th>رصيد السحب</th><th>نسبة الربح</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>`;
-        users.forEach((addr, index) => {
-            const profit = data[addr].customProfit || 0;
-            const isDisabled = data[addr].disabled === true;
-            const key = `investment_${addr}`;
-            let userBalance = 0, userWithdrawal = 0;
-            const stored = localStorage.getItem(key);
-            if (stored) { try { const d = JSON.parse(stored); userBalance = d.balance || 0; userWithdrawal = d.withdrawalBalance || 0; } catch(e) {} }
+        
+        usersList.forEach((user, index) => {
+            const addr = user.address;
+            const profit = user.customProfit || 0;
+            const isDisabled = user.disabled === true;
+            const userBalance = user.balance || 0;
+            const userWithdrawal = user.withdrawalBalance || 0;
+            
             html += `<tr>
                 <td>${index+1}</td>
                 <td style="font-family:monospace;font-size:0.75rem;">${addr.slice(0,6)}...${addr.slice(-4)}</td>
@@ -1023,11 +1073,11 @@ function renderAdminTable() {
                 </td>
             </tr>`;
         });
+        
         html += '</tbody></table></div>';
     }
     document.getElementById('adminContent').innerHTML = html;
 }
-
 function savePlatformSettings() {
     const exchangeRate = parseFloat(document.getElementById('settingExchangeRate').value);
     const durationHours = parseFloat(document.getElementById('settingDuration').value);
@@ -1073,10 +1123,82 @@ async function switchNetwork(chainIdHex) { if (!window.ethereum) { showToast('�
 
 async function connectWallet() { if (!window.ethereum) { showToast('⚠️ يرجى تثبيت MetaMask أو Trust Wallet!', 'error'); return; } try { provider = new ethers.providers.Web3Provider(window.ethereum); await provider.send("eth_requestAccounts", []); signer = provider.getSigner(); userAddress = await signer.getAddress(); document.getElementById('connectBtn').classList.add('hidden'); document.getElementById('walletInfo').classList.remove('hidden'); document.getElementById('walletAddress').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4); loadStoredData(); await loadAllData(); showToast('✅ تم ربط المحفظة', 'success'); setInterval(loadAllData, 5000); setInterval(updateSellAvailability, 10000); } catch (error) { showToast('❌ فشل الربط: ' + error.message, 'error'); } }
 
-function saveData() { if (userAddress) { const key = `investment_${userAddress}`; const data = { balance: investmentBalance, purchaseTime: purchaseTime, withdrawalBalance: withdrawalBalance, lastWithdrawRequestTime: lastWithdrawRequestTime }; localStorage.setItem(key, JSON.stringify(data)); const adminData = getAdminData(); if (!adminData[userAddress]) { adminData[userAddress] = { customProfit: 0, disabled: false }; saveAdminData(adminData); } } }
+async function saveData() { 
+    if (!userAddress) return;
+    
+    const data = { 
+        balance: investmentBalance, 
+        purchaseTime: purchaseTime, 
+        withdrawalBalance: withdrawalBalance, 
+        lastWithdrawRequestTime: lastWithdrawRequestTime,
+        customProfit: userCustomProfit || 0,
+        disabled: false,
+        address: userAddress.toLowerCase(),
+        updatedAt: Date.now()
+    };
+    
+    localStorage.setItem(`investment_${userAddress}`, JSON.stringify(data));
+    
+    try {
+        if (window.firebaseReady) {
+            const { doc, setDoc } = window.firebaseFns;
+            const userRef = doc(window.db, 'users', userAddress.toLowerCase());
+            await setDoc(userRef, data, { merge: true });
+            console.log('✅ تم الحفظ في Firebase');
+        }
+    } catch (error) {
+        console.error('❌ فشل الحفظ في Firebase:', error);
+    }
+}
 
-function loadStoredData() { if (userAddress) { const key = `investment_${userAddress}`; const stored = localStorage.getItem(key); if (stored) { try { const data = JSON.parse(stored); investmentBalance = data.balance || 0; purchaseTime = data.purchaseTime || null; withdrawalBalance = data.withdrawalBalance || 0; lastWithdrawRequestTime = data.lastWithdrawRequestTime || 0; } catch (e) {} } else { investmentBalance = 0; purchaseTime = null; withdrawalBalance = 0; lastWithdrawRequestTime = 0; } } }
-
+async function loadStoredData() { 
+    if (!userAddress) return;
+    
+    try {
+        if (window.firebaseReady) {
+            const { doc, getDoc } = window.firebaseFns;
+            const userRef = doc(window.db, 'users', userAddress.toLowerCase());
+            const userSnap = await getDoc(userRef);
+            
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                investmentBalance = data.balance || 0;
+                purchaseTime = data.purchaseTime || null;
+                withdrawalBalance = data.withdrawalBalance || 0;
+                lastWithdrawRequestTime = data.lastWithdrawRequestTime || 0;
+                userCustomProfit = data.customProfit || 0;
+                console.log('✅ تم التحميل من Firebase');
+                return;
+            } else {
+                investmentBalance = 0;
+                purchaseTime = null;
+                withdrawalBalance = 0;
+                lastWithdrawRequestTime = 0;
+                userCustomProfit = 0;
+                return;
+            }
+        }
+    } catch (error) {
+        console.error('❌ فشل التحميل من Firebase:', error);
+    }
+    
+    const key = `investment_${userAddress}`;
+    const stored = localStorage.getItem(key);
+    if (stored) { 
+        try { 
+            const data = JSON.parse(stored); 
+            investmentBalance = data.balance || 0; 
+            purchaseTime = data.purchaseTime || null; 
+            withdrawalBalance = data.withdrawalBalance || 0; 
+            lastWithdrawRequestTime = data.lastWithdrawRequestTime || 0; 
+        } catch (e) {} 
+    } else { 
+        investmentBalance = 0; 
+        purchaseTime = null; 
+        withdrawalBalance = 0; 
+        lastWithdrawRequestTime = 0; 
+    } 
+}
 async function loadAllData() {
     if (!userAddress) return;
     try {
