@@ -28,7 +28,17 @@
   window.dispatchEvent(new Event('firebaseReady'));
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<script>
+  if (typeof ethers === 'undefined') {
+    document.write('<script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"><\/script>');
+  }
+</script>
+<script>
+  if (typeof ethers === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"><\/script>');
+  }
+</script>
 <style>
 * { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #0b0d1a; min-height: 100vh; }
@@ -70,11 +80,7 @@ body { background: #0b0d1a; min-height: 100vh; }
 .pulse-dot { animation: pulse 1.5s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 .network-selector { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 8px 14px; color: #fff; font-weight: 600; cursor: pointer; outline: none; }
-.network-selector:focus { border-color: #4facfe; }
 .network-selector option { background: #1a1d2e; color: #fff; }
-.modal-content::-webkit-scrollbar { width: 6px; }
-.modal-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
-.modal-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
 .glow-text { text-shadow: 0 0 20px rgba(79,172,254,0.3); }
 .balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .action-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
@@ -82,14 +88,13 @@ body { background: #0b0d1a; min-height: 100vh; }
 .admin-table th, .admin-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; color: #e5e7eb; font-size: 0.85rem; }
 .admin-table th { background: rgba(255,255,255,0.03); color: #9ca3af; font-weight: 700; }
 .admin-table input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 4px 8px; color: #fff; }
-.btn-save { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; }
-.btn-save:hover { transform: scale(1.05); }
-.btn-toggle { border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; }
+.btn-save { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
+.btn-toggle { border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
 .btn-toggle.active { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
 .btn-toggle.inactive { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
 .trading-layout { display: grid; grid-template-columns: 220px 1fr 320px; gap: 12px; margin-top: 20px; min-height: 600px; }
 .panel { background: rgba(255,255,255,0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; }
-.panel-header { font-size: 0.7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.panel-header { font-size: 0.7rem; font-weight: 700; color: #9ca3af; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 .panel-header .price-big { font-size: 0.85rem; color: #fff; font-weight: 800; }
 .orderbook { font-size: 0.7rem; font-family: 'Courier New', monospace; }
 .ob-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 3px 6px; border-radius: 4px; margin-bottom: 1px; position: relative; overflow: hidden; cursor: pointer; }
@@ -104,7 +109,6 @@ body { background: #0b0d1a; min-height: 100vh; }
 .ob-row.bid .ob-bar { background: #10b981; }
 .ob-mid { display: flex; align-items: center; justify-content: center; padding: 6px 0; margin: 4px 0; border-top: 1px dashed rgba(255,255,255,0.1); border-bottom: 1px dashed rgba(255,255,255,0.1); }
 .ob-mid .mid-price { font-size: 0.95rem; font-weight: 800; color: #10b981; }
-.ob-mid .mid-arrow { color: #10b981; margin-right: 6px; font-size: 0.8rem; }
 .chart-area { background: linear-gradient(180deg, rgba(0,242,254,0.03) 0%, rgba(79,172,254,0.01) 100%); border-radius: 8px; padding: 12px; flex: 1; position: relative; min-height: 320px; overflow: hidden; }
 .chart-svg { width: 100%; height: 100%; display: block; }
 .chart-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; font-size: 0.7rem; }
@@ -144,8 +148,7 @@ body { background: #0b0d1a; min-height: 100vh; }
 .time-slot.listing-slot .time-slot-value { color: #4facfe; }
 .time-slot.status-slot .time-slot-value { color: #f59e0b; }
 .time-slot-status { position: absolute; top: 4px; right: 5px; font-size: 0.6rem; opacity: 0.7; }
-.time-slot-status.active-dot { color: #10b981; font-size: 0.7rem; animation: pulse-dot 1.5s ease-in-out infinite; }
-.mexc-balance-card { direction: ltr; background: rgba(255,255,255,0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+.mexc-balance-card { direction: ltr; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
 .mexc-balance-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 .mexc-balance-info { direction: rtl; flex: 1; text-align: right; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
 .mexc-balance-name { font-size: 0.7rem; color: #9ca3af; font-weight: 600; width: 100%; }
@@ -159,6 +162,10 @@ body { background: #0b0d1a; min-height: 100vh; }
 .withdraw-badge { font-size: 0.6rem; color: #f59e0b; font-weight: 700; }
 .withdraw-row { font-size: 0.68rem; color: #9ca3af; margin-bottom: 2px; }
 .withdraw-row span { font-weight: 700; }
+.wallet-option { display: block; padding: 16px; color: #fff; font-weight: 700; border-radius: 14px; text-align: center; text-decoration: none; margin-bottom: 10px; font-size: 0.95rem; transition: transform 0.2s; }
+.wallet-option:active { transform: scale(0.97); }
+.wallet-metamask { background: linear-gradient(135deg, #f6851b, #e2761b); }
+.wallet-trust { background: linear-gradient(135deg, #3375bb, #1e5fa0); }
 @media (max-width: 1100px) { .trading-layout { grid-template-columns: 200px 1fr 280px; } }
 @media (max-width: 900px) { .trading-layout { grid-template-columns: 1fr; } }
 @media (max-width: 640px) {
@@ -243,7 +250,7 @@ body { background: #0b0d1a; min-height: 100vh; }
         <div class="time-slot buy-slot"><div class="time-slot-icon">🟢</div><div class="time-slot-info"><div class="time-slot-label">شراء</div><div class="time-slot-value" id="buyTimeDisplay">10 م → 6 م</div></div><div class="time-slot-status">✓</div></div>
         <div class="time-slot sell-slot"><div class="time-slot-icon">🔴</div><div class="time-slot-info"><div class="time-slot-label">بيع</div><div class="time-slot-value" id="sellTimeDisplay">8 م → 9 ص</div></div><div class="time-slot-status">✓</div></div>
         <div class="time-slot listing-slot"><div class="time-slot-icon">⏰</div><div class="time-slot-info"><div class="time-slot-label">إدراج الصفقة</div><div class="time-slot-value" id="openTimeDisplay">7 مساءً</div></div><div class="time-slot-status">📌</div></div>
-        <div class="time-slot status-slot"><div class="time-slot-icon">📊</div><div class="time-slot-info"><div class="time-slot-label">حالة السوق</div><div class="time-slot-value">نشط</div></div><div class="time-slot-status active-dot">●</div></div>
+        <div class="time-slot status-slot"><div class="time-slot-icon">📊</div><div class="time-slot-info"><div class="time-slot-label">حالة السوق</div><div class="time-slot-value">نشط</div></div><div class="time-slot-status">●</div></div>
     </div>
 </div>
 
@@ -255,7 +262,7 @@ body { background: #0b0d1a; min-height: 100vh; }
         </div>
         <div class="orderbook" style="flex:1;display:flex;flex-direction:column;">
             <div id="obAsks" style="flex:1;"></div>
-            <div class="ob-mid"><span class="mid-arrow" id="obArrow">▲</span><span class="mid-price" id="obMidPrice">0.000100</span></div>
+            <div class="ob-mid"><span class="mid-price" id="obMidPrice">0.000100</span></div>
             <div id="obBids" style="flex:1;"></div>
         </div>
         <div class="chart-stats" style="grid-template-columns:1fr 1fr;margin-top:8px;">
@@ -379,7 +386,7 @@ body { background: #0b0d1a; min-height: 100vh; }
 <div class="space-y-4">
 <div><label class="block text-sm text-white/50 mb-2">كلمة المرور</label><input type="password" id="adminPasswordInput" placeholder="أدخل كلمة المرور..." class="input-modern" /></div>
 <button onclick="adminLogin()" class="btn-neon">تسجيل الدخول</button>
-<div class="text-center text-xs text-gray-500 mt-2">(اضغط 5 مرات على 🚀 للظهور)</div>
+<div class="text-center text-xs text-gray-500 mt-2">(اضغط 5 مرات على الشعار للظهور)</div>
 </div>
 </div>
 </div>
@@ -399,6 +406,9 @@ const DEFAULT_BUY_START_HOUR = 22;
 const DEFAULT_BUY_END_HOUR = 18;
 const DEFAULT_SELL_START_HOUR = 20;
 const DEFAULT_SELL_END_HOUR = 9;
+
+// ✅ الرابط الحقيقي — يُستخدم في Deep Links (لا يعتمد على localhost)
+const APP_URL = 'asembb4.github.io/Defimm/';
 
 let cachedSettings = null;
 let lastSettingsFetch = 0;
@@ -454,9 +464,6 @@ async function saveSettings(settings) {
     } catch (e) { console.error('فشل حفظ الإعدادات:', e); }
 }
 
-// ============================================================
-// ✅ دالة موحّدة لحفظ حقول المستخدم في Firestore
-// ============================================================
 async function saveUserFieldToFirestore(address, fields) {
     if (!window.firebaseReady || !address) return false;
     try {
@@ -473,9 +480,9 @@ async function saveUserFieldToFirestore(address, fields) {
 }
 
 let provider, signer, userAddress = null, investmentBalance = 0, purchaseTime = null, isSellAvailable = false;
-let userCustomProfit = 0;       // ← من Firestore (customProfit)
-let isUserDisabled = false;     // ← من Firestore (disabled)
-let userWithdrawSettings = {};  // ← من Firestore (withdrawSettings)
+let userCustomProfit = 0;
+let isUserDisabled = false;
+let userWithdrawSettings = {};
 let tapCount = 0, tapTimer = null, withdrawalBalance = 0, lastWithdrawRequestTime = 0;
 let currentChartTab = '1H';
 let orderbookInterval = null;
@@ -499,12 +506,8 @@ async function sha256(message) {
 function handleTapOnLogo() { tapCount++; if (tapTimer) clearTimeout(tapTimer); tapTimer = setTimeout(() => { tapCount = 0; }, 500); if (tapCount >= 5) { tapCount = 0; clearTimeout(tapTimer); openAdminLoginModal(); } }
 document.addEventListener('DOMContentLoaded', function() { const el = document.getElementById('adminTapArea'); if (el) el.addEventListener('click', handleTapOnLogo); });
 
-// ============================================================
-// ✅ إعدادات السحب الفعّالة: الأولوية لبيانات Firestore للمستخدم الحالي
-// ============================================================
 function getEffectiveWithdrawSettings(address, globalSettings) {
     let userSettings = {};
-    // إذا كانت المحفظة هي المستخدم الحالي، استخدم البيانات المحمّلة من Firestore
     if (userAddress && address && address.toLowerCase() === userAddress.toLowerCase()) {
         userSettings = userWithdrawSettings || {};
     }
@@ -750,9 +753,6 @@ async function generateChart() {
     document.getElementById('chartGrid').innerHTML = gridHtml;
 }
 
-// ============================================================
-// ✅ دوال الأدمن — الآن تكتب في Firestore
-// ============================================================
 async function updateUserStatus(address, disabled) {
     await saveUserFieldToFirestore(address, { disabled: disabled });
     if (userAddress && address.toLowerCase() === userAddress.toLowerCase()) {
@@ -795,7 +795,6 @@ async function updateUserBalance(address, newBalance) {
 async function addToUserBalance(address, amount) {
     const addAmount = parseFloat(amount);
     if (isNaN(addAmount) || addAmount === 0) { showToast('⚠️ أدخل مبلغاً صحيحاً', 'error'); return; }
-    // جلب الرصيد الحالي من Firestore
     let currentBalance = 0;
     try {
         const { doc, getDoc } = window.firebaseFns;
@@ -835,7 +834,6 @@ async function updateUserWithdrawalBalance(address, newAmount) {
 }
 
 function openBalanceEditor(address) {
-    // نقرأ الرصيد من جدول الأدمن الحالي
     const cached = window._adminUsersCache && window._adminUsersCache[address.toLowerCase()];
     const currentBalance = (cached && cached.balance) || 0;
     const currentWithdrawal = (cached && cached.withdrawalBalance) || 0;
@@ -965,9 +963,6 @@ async function clearWithdrawSettings(address) {
     showToast(ok ? '✅ تم مسح إعدادات السحب' : '❌ فشل', ok ? 'success' : 'error');
 }
 
-// ============================================================
-// ✅ جدول الأدمن: يقرأ من Firestore، ويستخدم كاش محلي
-// ============================================================
 async function renderAdminTable() {
     let usersList = [];
     try {
@@ -979,7 +974,6 @@ async function renderAdminTable() {
         }
     } catch (error) { console.warn('⚠️ Firebase غير متصل'); }
 
-    // كاش محلي للاستخدام في النوافذ المنبثقة
     window._adminUsersCache = {};
     usersList.forEach(u => { window._adminUsersCache[u.address.toLowerCase()] = u; });
 
@@ -1018,7 +1012,7 @@ async function renderAdminTable() {
             <div><label>🔴 بداية وقت البيع</label><input type="number" id="settingSellStartHour" value="${settings.sellStartHour ?? DEFAULT_SELL_START_HOUR}" class="input-modern" style="width:100%;" min="0" max="23" /></div>
             <div><label>🔴 نهاية وقت البيع</label><input type="number" id="settingSellEndHour" value="${settings.sellEndHour ?? DEFAULT_SELL_END_HOUR}" class="input-modern" style="width:100%;" min="0" max="23" /></div>
         </div>
-        <p style="color:#6b7280;font-size:0.7rem;margin-top:6px;">ℹ️ الأوقات بنظام 24 ساعة بتوقيت السعودية. يمكن أن يتداخل وقت الشراء مع وقت البيع.</p>
+        <p style="color:#6b7280;font-size:0.7rem;margin-top:6px;">ℹ️ الأوقات بنظام 24 ساعة بتوقيت السعودية.</p>
         <div style="margin-top:10px;">
             <label>⏰ وقت إدراج الصفقة (نص حر)</label>
             <input type="text" id="settingOpenListingTime" value="${settings.openListingTime || '7 مساءً'}" class="input-modern" style="width:100%;" />
@@ -1043,12 +1037,12 @@ async function renderAdminTable() {
                 <td style="font-family:monospace;font-size:0.75rem;">${addr.slice(0,6)}...${addr.slice(-4)}</td>
                 <td><span style="color:#4facfe;font-weight:700;">${userBalance.toFixed(2)}</span></td>
                 <td><span style="color:#f59e0b;font-weight:700;">${userWithdrawal.toFixed(6)}</span></td>
-                <td><input type="number" id="profitInput_${addr}" value="${profit}" min="0" max="${MAX_PROFIT_PERCENT}" step="0.1" style="width:70px;" title="0 = استخدام النسبة العامة" /></td>
+                <td><input type="number" id="profitInput_${addr}" value="${profit}" min="0" max="${MAX_PROFIT_PERCENT}" step="0.1" style="width:70px;" /></td>
                 <td><span style="color:${isDisabled ? '#ef4444' : '#10b981'};font-weight:700;">${isDisabled ? 'معطل' : 'نشط'}</span></td>
                 <td style="white-space:nowrap;">
                     <button class="btn-save" style="background:linear-gradient(135deg,#00f2fe,#4facfe);" onclick="openBalanceEditor('${addr}')">💰 تعديل</button>
                     <button class="btn-save" onclick="updateUserProfit('${addr}', document.getElementById('profitInput_${addr}').value)" style="margin-right:3px;">حفظ</button>
-                    <button class="btn-save" style="background:linear-gradient(135deg,#f59e0b,#d97706); margin-right:3px; ${hasWS ? 'box-shadow:0 0 0 2px rgba(245,158,11,0.5);' : ''}" onclick="openWithdrawSettingsEditor('${addr}')">🏦 سحب${hasWS ? ' •' : ''}</button>
+                    <button class="btn-save" style="background:linear-gradient(135deg,#f59e0b,#d97706); margin-right:3px; ${hasWS ? 'box-shadow:0 0 0 2px rgba(245,158,11,0.5);' : ''}" onclick="openWithdrawSettingsEditor('${addr}')">🏦 سحب</button>
                     <button class="${isDisabled ? 'btn-toggle active' : 'btn-toggle inactive'}" onclick="updateUserStatus('${addr}', ${!isDisabled})" style="margin-right:3px;">${isDisabled ? 'تفعيل' : 'تعطيل'}</button>
                 </td>
             </tr>`;
@@ -1080,11 +1074,11 @@ async function savePlatformSettings() {
     if (isNaN(profitPercentRaw) || profitPercentRaw < 0 || profitPercentRaw > MAX_PROFIT_PERCENT) {
         showToast(`⚠️ نسبة الأرباح يجب أن تكون بين 0 و ${MAX_PROFIT_PERCENT}%`, 'error'); return;
     }
-    if (isNaN(buyStartHour) || buyStartHour < 0 || buyStartHour > 23) { showToast('⚠️ بداية وقت الشراء غير صحيحة', 'error'); return; }
-    if (isNaN(buyEndHour) || buyEndHour < 0 || buyEndHour > 23) { showToast('⚠️ نهاية وقت الشراء غير صحيحة', 'error'); return; }
+    if (isNaN(buyStartHour) || buyStartHour < 0 || buyStartHour > 23) { showToast('⚠️ بداية الشراء غير صحيحة', 'error'); return; }
+    if (isNaN(buyEndHour) || buyEndHour < 0 || buyEndHour > 23) { showToast('⚠️ نهاية الشراء غير صحيحة', 'error'); return; }
     if (buyStartHour === buyEndHour) { showToast('⚠️ بداية ونهاية الشراء لا يمكن أن تتطابقا', 'error'); return; }
-    if (isNaN(sellStartHour) || sellStartHour < 0 || sellStartHour > 23) { showToast('⚠️ بداية وقت البيع غير صحيحة', 'error'); return; }
-    if (isNaN(sellEndHour) || sellEndHour < 0 || sellEndHour > 23) { showToast('⚠️ نهاية وقت البيع غير صحيحة', 'error'); return; }
+    if (isNaN(sellStartHour) || sellStartHour < 0 || sellStartHour > 23) { showToast('⚠️ بداية البيع غير صحيحة', 'error'); return; }
+    if (isNaN(sellEndHour) || sellEndHour < 0 || sellEndHour > 23) { showToast('⚠️ نهاية البيع غير صحيحة', 'error'); return; }
     if (sellStartHour === sellEndHour) { showToast('⚠️ بداية ونهاية البيع لا يمكن أن تتطابقا', 'error'); return; }
 
     await saveSettings({
@@ -1144,27 +1138,69 @@ async function switchNetwork(chainIdHex) {
     } catch (error) { showToast('❌ فشل تبديل الشبكة', 'error'); }
 }
 
+// ============================================================
+// ✅ ربط المحفظة — يستخدم APP_URL الثابت دائماً
+// ============================================================
 async function connectWallet() {
-    if (!window.ethereum) { showToast('⚠️ يرجى تثبيت MetaMask أو Trust Wallet!', 'error'); return; }
-    try {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        userAddress = await signer.getAddress();
-        document.getElementById('connectBtn').classList.add('hidden');
-        document.getElementById('walletInfo').classList.remove('hidden');
-        document.getElementById('walletAddress').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
-        await loadStoredData();
-        await loadAllData();
-        showToast('✅ تم ربط المحفظة', 'success');
-        setInterval(loadAllData, 5000);
-        setInterval(updateSellAvailability, 10000);
-    } catch (error) { showToast('❌ فشل الربط: ' + error.message, 'error'); }
+    if (window.ethereum) {
+        try {
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            document.getElementById('connectBtn').classList.add('hidden');
+            document.getElementById('walletInfo').classList.remove('hidden');
+            document.getElementById('walletAddress').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+            await loadStoredData();
+            await loadAllData();
+            showToast('✅ تم ربط المحفظة', 'success');
+            setInterval(loadAllData, 5000);
+            setInterval(updateSellAvailability, 10000);
+        } catch (error) {
+            showToast('❌ فشل الربط: ' + error.message, 'error');
+        }
+        return;
+    }
+    
+    const ua = navigator.userAgent || '';
+    const isMobile = /android|iphone|ipad|ipod/i.test(ua);
+    
+    if (isMobile) {
+        showWalletChooser(APP_URL);
+    } else {
+        showToast('⚠️ يرجى تثبيت MetaMask أو Trust Wallet من إضافات المتصفح!', 'error');
+    }
 }
 
-// ============================================================
-// ✅ saveData: يكتب فقط الحقول التي يملكها المستخدم — لا يلمس حقول الأدمن
-// ============================================================
+function showWalletChooser(cleanUrl) {
+    const modalHtml = `
+        <div id="walletChooserModal" class="modal-overlay" style="z-index:10002;">
+            <div class="modal-content" style="max-width: 420px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                    <h3 style="font-size:1.2rem;font-weight:800;color:#fff;">🔗 اختر محفظتك</h3>
+                    <button onclick="document.getElementById('walletChooserModal').remove()" style="color:#9ca3af;font-size:1.5rem;background:none;border:none;cursor:pointer;">✕</button>
+                </div>
+                <p style="color:#9ca3af;font-size:0.85rem;margin-bottom:20px;text-align:center;line-height:1.6;">
+                    سيتم فتح المنصة داخل محفظتك لربطها تلقائياً. بعد الموافقة، عُد إلى هذا المتصفح.
+                </p>
+                <a href="https://metamask.app.link/dapp/${cleanUrl}" class="wallet-option wallet-metamask">
+                    🦊 فتح في MetaMask
+                </a>
+                <a href="https://link.trustwallet.com/open_url?coin_id=60&url=https://${cleanUrl}" class="wallet-option wallet-trust">
+                    🛡️ فتح في Trust Wallet
+                </a>
+                <p style="color:#6b7280;font-size:0.7rem;text-align:center;margin-top:14px;">
+                    إذا لم تُفتح المحفظة تلقائياً، اضغط الرابط مرة أخرى أو افتحها يدوياً واكتب:<br>
+                    <span style="color:#4facfe;word-break:break-all;">${cleanUrl}</span>
+                </p>
+                <button class="btn-ghost w-full mt-2" onclick="document.getElementById('walletChooserModal').remove()">إلغاء</button>
+            </div>
+        </div>`;
+    const old = document.getElementById('walletChooserModal');
+    if (old) old.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
 async function saveData() {
     if (!userAddress) return;
     const data = {
@@ -1184,9 +1220,6 @@ async function saveData() {
     } catch (e) { console.error('❌ فشل الحفظ:', e); }
 }
 
-// ============================================================
-// ✅ loadStoredData: يقرأ حقول الأدمن من Firestore
-// ============================================================
 async function loadStoredData() {
     if (!userAddress) return;
     try {
@@ -1202,7 +1235,6 @@ async function loadStoredData() {
                 userCustomProfit = data.customProfit || 0;
                 isUserDisabled = data.disabled === true;
                 userWithdrawSettings = data.withdrawSettings || {};
-                console.log('✅ تم التحميل من Firestore | customProfit:', userCustomProfit, '| disabled:', isUserDisabled, '| hasWS:', Object.keys(userWithdrawSettings).length);
                 return;
             } else {
                 investmentBalance = 0; purchaseTime = null; withdrawalBalance = 0;
@@ -1211,8 +1243,6 @@ async function loadStoredData() {
             }
         }
     } catch (e) { console.error('❌ فشل التحميل:', e); }
-
-    // Fallback إلى localStorage
     const stored = localStorage.getItem(`investment_${userAddress}`);
     if (stored) {
         try {
@@ -1248,7 +1278,6 @@ async function loadAllData() {
         if (minBuyEl) minBuyEl.textContent = settings.minBuyAmount ?? DEFAULT_MIN_BUY_AMOUNT;
         renderQuickBuyButtons(settings.minBuyAmount ?? DEFAULT_MIN_BUY_AMOUNT);
 
-        // ✅ نستخدم userCustomProfit من Firestore (تم تحميله في loadStoredData)
         const settingsProfit = parseFloat(settings.profitPercent);
         const baseProfit = (isNaN(settingsProfit) || settingsProfit < 0) ? 0 : settingsProfit;
         const currentProfitPercent = (userCustomProfit > 0) ? userCustomProfit : baseProfit;
