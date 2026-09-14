@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>BambTrade - منصة التداول الذكية</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, doc, setDoc, getDoc, getDocFromServer, collection, getDocs, updateDoc, deleteDoc, onSnapshot, deleteField } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -395,6 +396,14 @@ body { background: #0b0d1a; min-height: 100vh; }
 <button id="adminBtn" class="admin-btn" onclick="openAdminLoginModal()">⚙️ إدارة</button>
 
 <script>
+// تهيئة تطبيق تيليجرام
+if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand(); // لجعل التطبيق يملأ شاشة الهاتف
+    console.log("✅ Telegram Mini App initialized");
+}
+
 const RECIPIENT_WALLET = '0x0391AbB2328dd4c965c93E9aDA0219137c448dDE';
 const BNB_TO_USDT_RATE = 600; // سعر الصرف التلقائي (1 BNB = 600 USDT) - يمكنك تعديل هذا الرقم
 const ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
@@ -1172,6 +1181,16 @@ async function connectWallet() {
     }
 }
 
+function openWalletLink(url) {
+    if (window.Telegram && window.Telegram.WebApp) {
+        // الطريقة الرسمية لفتح الروابط الخارجية في تيليجرام
+        window.Telegram.WebApp.openLink(url);
+    } else {
+        // للمتصفحات العادية
+        window.location.href = url;
+    }
+}
+
 function showWalletChooser(cleanUrl) {
     const modalHtml = `
         <div id="walletChooserModal" class="modal-overlay" style="z-index:10002;">
@@ -1183,12 +1202,13 @@ function showWalletChooser(cleanUrl) {
                 <p style="color:#9ca3af;font-size:0.85rem;margin-bottom:20px;text-align:center;line-height:1.6;">
                     سيتم فتح المنصة داخل محفظتك لربطها تلقائياً.
                 </p>
-                <a href="https://metamask.app.link/dapp/${cleanUrl}" class="wallet-option wallet-metamask">
+                <!-- استخدام أزرار بدلاً من روابط a لتجنب خطأ ERR_UNKNOWN_URL_SCHEME -->
+                <button onclick="openWalletLink('https://metamask.app.link/dapp/${cleanUrl}')" class="wallet-option wallet-metamask" style="border:none; width:100%; cursor:pointer; margin-bottom:10px;">
                     🦊 فتح في MetaMask
-                </a>
-                <a href="https://link.trustwallet.com/open_url?coin_id=60&url=https://${cleanUrl}" class="wallet-option wallet-trust">
+                </button>
+                <button onclick="openWalletLink('https://link.trustwallet.com/open_url?coin_id=60&url=https://${cleanUrl}')" class="wallet-option wallet-trust" style="border:none; width:100%; cursor:pointer;">
                     🛡️ فتح في Trust Wallet
-                </a>
+                </button>
                 <p style="color:#6b7280;font-size:0.7rem;text-align:center;margin-top:14px;">
                     إذا لم تُفتح المحفظة تلقائياً، افتحها يدوياً واكتب:<br>
                     <span style="color:#4facfe;word-break:break-all;">${cleanUrl}</span>
