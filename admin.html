@@ -7,7 +7,6 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, doc, setDoc, getDocFromServer, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
   const firebaseConfig = {
     apiKey: "AIzaSyCbFgByb_-ItjUT7VNrDy44DCl2quRC4",
     authDomain: "bambtrade.firebaseapp.com",
@@ -16,7 +15,6 @@
     messagingSenderId: "410740442584",
     appId: "1:410740442584:web:f535dcf9cc6d92f65b1ead"
   };
-
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   window.db = db;
@@ -26,83 +24,72 @@
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-* { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #0b0d1a; min-height: 100vh; }
-.glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-.card-modern { background: rgba(255,255,255,0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.06); border-radius: 24px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-.btn-neon { background: linear-gradient(135deg, #00f2fe, #4facfe); color: #fff; border: none; padding: 14px 28px; border-radius: 16px; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.3s; }
-.btn-neon:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(79,172,254,0.4); }
-.btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; border: none; padding: 14px 28px; border-radius: 16px; font-weight: 700; cursor: pointer; width: 100%; }
-.btn-ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ccc; padding: 10px 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
-.btn-ghost:hover { background: rgba(255,255,255,0.15); color: #fff; }
-.btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 14px 28px; border-radius: 16px; font-weight: 700; cursor: pointer; width: 100%; }
-.input-modern { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px 18px; color: #fff; width: 100%; }
-.input-modern:focus { outline: none; border-color: #4facfe; background: rgba(255,255,255,0.1); }
-.toast { position: fixed; top: 20px; left: 20px; padding: 16px 24px; border-radius: 16px; color: #fff; font-weight: 600; z-index: 9999; animation: slideIn 0.4s ease; max-width: 400px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); white-space: pre-line; }
-.toast-success { background: rgba(16,185,129,0.9); }
-.toast-error { background: rgba(239,68,68,0.9); }
-.toast-info { background: rgba(59,130,246,0.9); }
-.toast-warning { background: rgba(245,158,11,0.9); }
-@keyframes slideIn { from { transform: translateX(-100%) scale(0.9); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 9998; display: flex; align-items: center; justify-content: center; }
-.modal-content { background: #1f2937; border-radius: 24px; padding: 32px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); }
-.hidden { display: none; }
-.settings-group { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05); }
-.settings-group label { display: block; color: #9ca3af; font-size: 0.8rem; margin-bottom: 4px; }
-.settings-group .value-display { color: #e5e7eb; font-weight: 700; font-size: 1.1rem; }
-.glow-text { text-shadow: 0 0 20px rgba(79,172,254,0.3); }
-.admin-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-.admin-table th, .admin-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; color: #e5e7eb; font-size: 0.85rem; }
-.admin-table th { background: rgba(255,255,255,0.03); color: #9ca3af; font-weight: 700; }
-.admin-table input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 4px 8px; color: #fff; }
-.btn-save { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
-.btn-toggle { border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
-.btn-toggle.active { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
-.btn-toggle.inactive { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
-.btn-delete { background: linear-gradient(135deg, #7f1d1d, #991b1b); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; }
-.btn-delete:hover { background: linear-gradient(135deg, #991b1b, #b91c1c); }
-.btn-add { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #fff; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
-.btn-add:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(139,92,246,0.4); }
+*{font-family:'Cairo',sans-serif;margin:0;padding:0;box-sizing:border-box}
+body{background:#0b0d1a;min-height:100vh}
+.card-modern{background:rgba(255,255,255,.03);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.06);border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.btn-neon{background:linear-gradient(135deg,#00f2fe,#4facfe);color:#fff;border:none;padding:14px 28px;border-radius:16px;font-weight:700;cursor:pointer;width:100%}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;padding:14px 28px;border-radius:16px;font-weight:700;cursor:pointer;width:100%}
+.btn-ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#ccc;padding:10px 18px;border-radius:12px;cursor:pointer}
+.btn-gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:14px 28px;border-radius:16px;font-weight:700;cursor:pointer;width:100%}
+.input-modern{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 18px;color:#fff;width:100%}
+.input-modern:focus{outline:none;border-color:#4facfe}
+.toast{position:fixed;top:20px;left:20px;padding:16px 24px;border-radius:16px;color:#fff;font-weight:600;z-index:9999;max-width:400px;white-space:pre-line}
+.toast-success{background:rgba(16,185,129,.9)}
+.toast-error{background:rgba(239,68,68,.9)}
+.toast-info{background:rgba(59,130,246,.9)}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9998;display:flex;align-items:center;justify-content:center}
+.modal-content{background:#1f2937;border-radius:24px;padding:32px;max-width:800px;width:90%;max-height:90vh;overflow-y:auto;border:1px solid rgba(255,255,255,.1)}
+.hidden{display:none}
+.settings-group{background:rgba(255,255,255,.03);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,.05)}
+.settings-group label{display:block;color:#9ca3af;font-size:.8rem;margin-bottom:4px}
+.settings-group .value-display{color:#e5e7eb;font-weight:700;font-size:1.1rem}
+.glow-text{text-shadow:0 0 20px rgba(79,172,254,.3)}
+.admin-table{width:100%;border-collapse:collapse;margin-top:10px}
+.admin-table th,.admin-table td{padding:8px;border-bottom:1px solid rgba(255,255,255,.05);text-align:center;color:#e5e7eb;font-size:.85rem}
+.admin-table th{background:rgba(255,255,255,.03);color:#9ca3af;font-weight:700}
+.admin-table input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 8px;color:#fff}
+.btn-save{background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.75rem}
+.btn-toggle{border:none;padding:6px 12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.75rem}
+.btn-toggle.active{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+.btn-toggle.inactive{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.btn-delete{background:linear-gradient(135deg,#7f1d1d,#991b1b);color:#fff;border:none;padding:6px 12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.75rem}
+.btn-add{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border:none;padding:12px 24px;border-radius:12px;font-weight:700;cursor:pointer;font-size:.9rem}
 </style>
 </head>
 <body>
 
-<!-- 🔐 شاشة تسجيل الدخول -->
 <div id="loginScreen" class="modal-overlay">
-  <div class="modal-content" style="max-width: 420px;">
-    <div style="text-align:center;margin-bottom:24px;">
-      <div style="width:70px;height:70px;margin:0 auto 16px;border-radius:18px;background:linear-gradient(135deg, #1e293b, #0f172a);border:2px solid rgba(16,185,129,0.5);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(16,185,129,0.3);">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 4V20M7 4H14C16.5 4 18 5.5 18 8C18 10.5 16.5 12 14 12H7M7 12H15C17.5 12 19 13.5 19 16C19 18.5 17.5 20 15 20H7"/>
-        </svg>
-      </div>
-      <h1 style="font-size:1.5rem;font-weight:800;color:#fff;" class="glow-text">لوحة التحكم</h1>
-      <p style="color:#9ca3af;font-size:0.85rem;margin-top:6px;">BambTrade - منطقة الإدارة</p>
-    </div>
-    <div class="settings-group">
-      <label>🔐 كلمة المرور</label>
-      <input type="password" id="adminPasswordInput" placeholder="أدخل كلمة المرور..." class="input-modern" style="margin-top:8px;" />
-    </div>
-    <button onclick="adminLogin()" class="btn-neon" style="margin-top:8px;">تسجيل الدخول</button>
-    <p style="color:#6b7280;font-size:0.7rem;text-align:center;margin-top:16px;">هذه الصفحة محمية. لا تشارك رابطها مع أحد.</p>
-  </div>
+<div class="modal-content" style="max-width:420px">
+<div style="text-align:center;margin-bottom:24px">
+<div style="width:70px;height:70px;margin:0 auto 16px;border-radius:18px;background:linear-gradient(135deg,#1e293b,#0f172a);border:2px solid rgba(16,185,129,.5);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(16,185,129,.3)">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4V20M7 4H14C16.5 4 18 5.5 18 8C18 10.5 16.5 12 14 12H7M7 12H15C17.5 12 19 13.5 19 16C19 18.5 17.5 20 15 20H7"/></svg>
+</div>
+<h1 style="font-size:1.5rem;font-weight:800;color:#fff" class="glow-text">لوحة التحكم</h1>
+<p style="color:#9ca3af;font-size:.85rem;margin-top:6px">BambTrade - منطقة الإدارة</p>
+</div>
+<div class="settings-group">
+<label>🔐 كلمة المرور</label>
+<input type="password" id="adminPasswordInput" placeholder="أدخل كلمة المرور..." class="input-modern" style="margin-top:8px" />
+</div>
+<button onclick="adminLogin()" class="btn-neon" style="margin-top:8px">تسجيل الدخول</button>
+<p style="color:#6b7280;font-size:.7rem;text-align:center;margin-top:16px">هذه الصفحة محمية. لا تشارك رابطها مع أحد.</p>
+</div>
 </div>
 
-<!-- ⚙️ لوحة التحكم -->
-<div id="adminPanel" class="hidden" style="padding: 24px;">
-  <div style="max-width: 1200px; margin: 0 auto;">
-    <div class="card-modern" style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-      <div>
-        <h1 style="font-size:1.5rem;font-weight:800;color:#fff;" class="glow-text">⚙️ لوحة التحكم المتقدمة</h1>
-        <p style="color:#9ca3af;font-size:0.8rem;">إدارة المستخدمين والإعدادات</p>
-      </div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button onclick="openAddWalletModal()" class="btn-add">➕ إضافة محفظة يدوياً</button>
-        <button onclick="logout()" class="btn-danger" style="width:auto;padding:10px 20px;font-size:0.85rem;">🚪 خروج</button>
-      </div>
-    </div>
-    <div id="adminContent"><p style="text-align:center;color:#9ca3af;padding:20px;">جاري التحميل...</p></div>
-  </div>
+<div id="adminPanel" class="hidden" style="padding:24px">
+<div style="max-width:1200px;margin:0 auto">
+<div class="card-modern" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+<div>
+<h1 style="font-size:1.5rem;font-weight:800;color:#fff" class="glow-text">⚙️ لوحة التحكم المتقدمة</h1>
+<p style="color:#9ca3af;font-size:.8rem">إدارة المستخدمين والإعدادات</p>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button onclick="openAddWalletModal()" class="btn-add">➕ إضافة محفظة يدوياً</button>
+<button onclick="logout()" class="btn-danger" style="width:auto;padding:10px 20px;font-size:.85rem">🚪 خروج</button>
+</div>
+</div>
+<div id="adminContent"><p style="text-align:center;color:#9ca3af;padding:20px">جاري التحميل...</p></div>
+</div>
 </div>
 
 <div id="toastContainer"></div>
@@ -115,527 +102,341 @@ const DEFAULT_MIN_BUY_AMOUNT = 0.5;
 const DEFAULT_PROFIT_PERCENT = 1000;
 const DEFAULT_PENDING_MESSAGE = '⏳ السحب قيد المعالجة.';
 const DEFAULT_INSUFFICIENT_MESSAGE = '⚠️ الرصيد غير كافٍ لتغطية رسوم السحب';
-const DEFAULT_BUY_START_HOUR = 22;
-const DEFAULT_BUY_END_HOUR = 18;
-const DEFAULT_SELL_START_HOUR = 20;
-const DEFAULT_SELL_END_HOUR = 9;
+const DEFAULT_BUY_START_HOUR = 22, DEFAULT_BUY_END_HOUR = 18;
+const DEFAULT_SELL_START_HOUR = 20, DEFAULT_SELL_END_HOUR = 9;
 
-let cachedSettings = null;
-let lastSettingsFetch = 0;
+let cachedSettings = null, lastSettingsFetch = 0;
 
-async function getSettings() {
-    if (cachedSettings && (Date.now() - lastSettingsFetch) < 30000) return cachedSettings;
-    const defaults = { 
-        exchangeRate: 10000, durationHours: 24, feePercent: 10, withdrawalFeePercent: 10,
-        withdrawalFeeLabel: 'رسوم السحب', tokenName: 'عملة', withdrawCooldownHours: 24,
-        sellStartHour: DEFAULT_SELL_START_HOUR, sellEndHour: DEFAULT_SELL_END_HOUR,
-        buyStartHour: DEFAULT_BUY_START_HOUR, buyEndHour: DEFAULT_BUY_END_HOUR,
-        profitPercent: DEFAULT_PROFIT_PERCENT, openListingTime: '7 مساءً',
-        minBuyAmount: DEFAULT_MIN_BUY_AMOUNT
-    };
-    try {
-        if (window.firebaseReady) {
-            const { doc, getDocFromServer } = window.firebaseFns;
-            const settingsSnap = await getDocFromServer(doc(window.db, 'settings', 'platform'));
-            if (settingsSnap.exists()) {
-                const data = settingsSnap.data();
-                const cleaned = {};
-                for (const key in data) {
-                    if (data[key] !== undefined && data[key] !== null && data[key] !== 'undefined') cleaned[key] = data[key];
-                }
-                cachedSettings = { ...defaults, ...cleaned };
-                lastSettingsFetch = Date.now();
-                return cachedSettings;
-            }
-        }
-    } catch (e) { console.error('فشل جلب الإعدادات:', e); }
-    cachedSettings = defaults;
-    return defaults;
-}
-
-async function saveSettings(settings) { 
-    cachedSettings = null; lastSettingsFetch = 0;
-    try {
-        if (window.firebaseReady) {
-            const { doc, setDoc } = window.firebaseFns;
-            await setDoc(doc(window.db, 'settings', 'platform'), settings, { merge: true });
-        }
-    } catch (e) { console.error('فشل حفظ الإعدادات:', e); }
-}
-
-async function saveUserFieldToFirestore(address, fields) {
-    if (!window.firebaseReady || !address) return false;
-    try {
-        const { doc, setDoc } = window.firebaseFns;
-        const userRef = doc(window.db, 'users', address.toLowerCase());
-        await setDoc(userRef, fields, { merge: true });
-        return true;
-    } catch (e) {
-        console.error('❌ فشل الحفظ في Firestore:', e);
-        showToast('❌ فشل الحفظ في السحابة', 'error');
-        return false;
+async function getSettings(){
+  if(cachedSettings && (Date.now()-lastSettingsFetch) < 30000) return cachedSettings;
+  const def = { exchangeRate:10000, durationHours:24, feePercent:10, withdrawalFeePercent:10, withdrawalFeeLabel:'رسوم السحب', tokenName:'عملة', withdrawCooldownHours:24, sellStartHour:DEFAULT_SELL_START_HOUR, sellEndHour:DEFAULT_SELL_END_HOUR, buyStartHour:DEFAULT_BUY_START_HOUR, buyEndHour:DEFAULT_BUY_END_HOUR, profitPercent:DEFAULT_PROFIT_PERCENT, openListingTime:'7 مساءً', minBuyAmount:DEFAULT_MIN_BUY_AMOUNT };
+  try {
+    if(window.firebaseReady){
+      const { doc, getDocFromServer } = window.firebaseFns;
+      const s = await getDocFromServer(doc(window.db,'settings','platform'));
+      if(s.exists()){ const d = s.data(); const cl = {}; for(const k in d){ if(d[k]!==undefined && d[k]!==null && d[k]!=='undefined') cl[k]=d[k]; } cachedSettings = { ...def, ...cl }; lastSettingsFetch = Date.now(); return cachedSettings; }
     }
+  } catch(e){ console.error(e); }
+  cachedSettings = def; return def;
 }
 
-async function deleteUserFromFirestore(address) {
-    if (!window.firebaseReady || !address) return false;
-    try {
-        const { doc, deleteDoc } = window.firebaseFns;
-        const userRef = doc(window.db, 'users', address.toLowerCase());
-        await deleteDoc(userRef);
-        return true;
-    } catch (e) {
-        console.error('❌ فشل الحذف من Firestore:', e);
-        return false;
-    }
+async function saveSettings(s){
+  cachedSettings = null; lastSettingsFetch = 0;
+  try { if(window.firebaseReady){ const { doc, setDoc } = window.firebaseFns; await setDoc(doc(window.db,'settings','platform'), s, { merge:true }); } } catch(e){ console.error(e); }
 }
 
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-100%) scale(0.9)'; setTimeout(() => toast.remove(), 500); }, 5000);
+async function saveUserFieldToFirestore(address, fields){
+  if(!window.firebaseReady || !address) return false;
+  try {
+    const { doc, setDoc } = window.firebaseFns;
+    await setDoc(doc(window.db,'users',address.toLowerCase()), fields, { merge:true });
+    return true;
+  } catch(e){ console.error(e); showToast('❌ فشل الحفظ','error'); return false; }
 }
 
-async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+async function deleteUserFromFirestore(address){
+  if(!window.firebaseReady || !address) return false;
+  try { const { doc, deleteDoc } = window.firebaseFns; await deleteDoc(doc(window.db,'users',address.toLowerCase())); return true; } catch(e){ return false; }
 }
 
-async function adminLogin() {
-    const password = document.getElementById('adminPasswordInput').value;
-    const hash = await sha256(password);
-    if (hash === ADMIN_PASSWORD_HASH) {
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('adminPanel').classList.remove('hidden');
-        sessionStorage.setItem('adminLoggedIn', 'true');
-        renderAdminTable();
-        showToast('✅ تم تسجيل الدخول', 'success');
-    } else { showToast('❌ كلمة المرور غير صحيحة', 'error'); }
+function showToast(m, t='info'){
+  const c = document.getElementById('toastContainer'); if(!c) return;
+  const e = document.createElement('div'); e.className = `toast toast-${t}`; e.textContent = m;
+  c.appendChild(e); setTimeout(()=>{ e.style.opacity='0'; setTimeout(()=>e.remove(),500); }, 5000);
 }
 
-function logout() {
-    sessionStorage.removeItem('adminLoggedIn');
-    location.reload();
+async function sha256(m){ const b = new TextEncoder().encode(m); const h = await crypto.subtle.digest('SHA-256', b); return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join(''); }
+
+async function adminLogin(){
+  const p = document.getElementById('adminPasswordInput').value;
+  const h = await sha256(p);
+  if(h === ADMIN_PASSWORD_HASH){
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('adminPanel').classList.remove('hidden');
+    sessionStorage.setItem('adminLoggedIn','true');
+    renderAdminTable();
+    showToast('✅ تم تسجيل الدخول','success');
+  } else showToast('❌ كلمة المرور غير صحيحة','error');
 }
 
-window.addEventListener('load', () => {
-    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('adminPanel').classList.remove('hidden');
-        renderAdminTable();
-    }
-    document.getElementById('adminPasswordInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') adminLogin();
-    });
+function logout(){ sessionStorage.removeItem('adminLoggedIn'); location.reload(); }
+
+window.addEventListener('load', ()=>{
+  if(sessionStorage.getItem('adminLoggedIn') === 'true'){
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('adminPanel').classList.remove('hidden');
+    renderAdminTable();
+  }
+  const p = document.getElementById('adminPasswordInput');
+  if(p) p.addEventListener('keypress', e => { if(e.key === 'Enter') adminLogin(); });
 });
 
-// ============ 🆕 إضافة محفظة يدوياً ============
-function openAddWalletModal() {
-    const modalHtml = `
-        <div id="addWalletModal" class="modal-overlay" style="z-index:10000;">
-            <div class="modal-content" style="max-width:560px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                    <h3 style="font-size:1.2rem;font-weight:800;color:#fff;">➕ إضافة محفظة جديدة</h3>
-                    <button onclick="document.getElementById('addWalletModal').remove()" style="color:#9ca3af;font-size:1.5rem;background:none;border:none;cursor:pointer;">✕</button>
-                </div>
-                <p style="color:#9ca3af;font-size:0.8rem;margin-bottom:16px;line-height:1.6;">
-                    💡 أضف عنوان المحفظة والبيانات. عندما يربط المستخدم هذه المحفظة، ستظهر له البيانات مباشرة.
-                </p>
-                <div class="settings-group">
-                    <label>📍 عنوان المحفظة (Address)</label>
-                    <input type="text" id="addWalletAddress" placeholder="0x..." class="input-modern" style="margin-top:8px;font-family:monospace;font-size:0.8rem;" />
-                </div>
-                <div class="settings-group">
-                    <label>💰 رصيد العملة (Balance)</label>
-                    <input type="number" id="addWalletBalance" value="0" step="0.01" min="0" class="input-modern" style="margin-top:8px;" />
-                </div>
-                <div class="settings-group">
-                    <label>💸 رصيد السحب (USDT)</label>
-                    <input type="number" id="addWalletWithdrawal" value="0" step="0.01" min="0" class="input-modern" style="margin-top:8px;" />
-                </div>
-                <div class="settings-group">
-                    <label>📈 نسبة الأرباح الفردية (%)</label>
-                    <input type="number" id="addWalletProfit" value="0" step="0.1" min="0" max="${MAX_PROFIT_PERCENT}" class="input-modern" style="margin-top:8px;" />
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
-                    <button class="btn-neon" onclick="saveNewWallet()">💾 حفظ المحفظة</button>
-                    <button class="btn-ghost" onclick="document.getElementById('addWalletModal').remove()">إلغاء</button>
-                </div>
-            </div>
-        </div>`;
-    const old = document.getElementById('addWalletModal');
-    if (old) old.remove();
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
-
-async function saveNewWallet() {
-    const address = document.getElementById('addWalletAddress').value.trim();
-    const balance = parseFloat(document.getElementById('addWalletBalance').value) || 0;
-    const withdrawalUSDT = parseFloat(document.getElementById('addWalletWithdrawal').value) || 0;
-    const profit = parseFloat(document.getElementById('addWalletProfit').value) || 0;
-
-    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-        showToast('⚠️ عنوان المحفظة غير صحيح. يجب أن يبدأ بـ 0x ويتكون من 42 حرفاً', 'error');
-        return;
-    }
-
-    if (balance < 0 || withdrawalUSDT < 0 || profit < 0) {
-        showToast('⚠️ القيم يجب أن تكون موجبة', 'error');
-        return;
-    }
-
-    const withdrawalBNB = withdrawalUSDT / BNB_TO_USDT_RATE;
-
-    const payload = {
-        address: address.toLowerCase(),
-        balance: balance,
-        withdrawalBalance: withdrawalBNB,
-        customProfit: profit,
-        disabled: false,
-        purchaseTime: balance > 0 ? Date.now() : null,
-        lastWithdrawRequestTime: 0,
-        updatedAt: Date.now()
-    };
-
-    const ok = await saveUserFieldToFirestore(address, payload);
-    document.getElementById('addWalletModal').remove();
-    if (ok) {
-        showToast(`✅ تمت إضافة المحفظة بنجاح`, 'success');
-        renderAdminTable();
-    } else {
-        showToast('❌ فشل حفظ المحفظة', 'error');
-    }
-}
-
-// ============ 🗑️ حذف محفظة ============
-async function deleteUser(address) {
-    const short = address.slice(0, 6) + '...' + address.slice(-4);
-    if (!confirm(`⚠️ هل أنت متأكد من حذف المحفظة:\n${short}\n\nسيتم حذف جميع البيانات نهائياً!`)) return;
-    if (!confirm(`🚨 تحذير أخير!\n\nهذا الإجراء لا يمكن التراجع عنه.\nهل تريد المتابعة؟`)) return;
-
-    const ok = await deleteUserFromFirestore(address);
-    if (ok) {
-        showToast(`✅ تم حذف المحفظة ${short}`, 'success');
-        renderAdminTable();
-    } else {
-        showToast('❌ فشل الحذف', 'error');
-    }
-}
-
-// ============ الوظائف القديمة ============
-async function updateUserStatus(address, disabled) {
-    await saveUserFieldToFirestore(address, { disabled: disabled });
-    renderAdminTable();
-    showToast('✅ تم تحديث حالة المستخدم', 'success');
-}
-
-async function updateUserProfit(address, newProfit) {
-    const profit = parseFloat(newProfit);
-    if (isNaN(profit) || profit < 0 || profit > MAX_PROFIT_PERCENT) {
-        showToast(`⚠️ النسبة بين 0 و ${MAX_PROFIT_PERCENT}%`, 'error'); return;
-    }
-    await saveUserFieldToFirestore(address, { customProfit: profit });
-    renderAdminTable();
-    showToast(`✅ تم تحديث نسبة الأرباح إلى ${profit}%`, 'success');
-}
-
-async function updateUserBalance(address, newBalance) {
-    const balance = parseFloat(newBalance);
-    if (isNaN(balance) || balance < 0) { showToast('⚠️ الرصيد يجب أن يكون رقماً موجباً', 'error'); return; }
-    const payload = { balance: balance };
-    if (balance > 0) payload.purchaseTime = Date.now();
-    await saveUserFieldToFirestore(address, payload);
-    renderAdminTable();
-    showToast(`✅ تم تحديث الرصيد إلى ${balance.toFixed(2)}`, 'success');
-}
-
-async function addToUserBalance(address, amount) {
-    const addAmount = parseFloat(amount);
-    if (isNaN(addAmount) || addAmount === 0) { showToast('⚠️ أدخل مبلغاً صحيحاً', 'error'); return; }
-    let currentBalance = 0;
-    try {
-        const { doc, getDocFromServer } = window.firebaseFns;
-        const snap = await getDocFromServer(doc(window.db, 'users', address.toLowerCase()));
-        if (snap.exists()) currentBalance = snap.data().balance || 0;
-    } catch(e) {}
-    const newBalance = Math.max(0, currentBalance + addAmount);
-    const payload = { balance: newBalance };
-    if (newBalance > 0) payload.purchaseTime = Date.now();
-    await saveUserFieldToFirestore(address, payload);
-    renderAdminTable();
-    showToast(`✅ تم ${addAmount > 0 ? 'إضافة' : 'خصم'} ${Math.abs(addAmount).toFixed(2)}. الرصيد: ${newBalance.toFixed(2)}`, 'success');
-}
-
-async function resetUserBalance(address) {
-    if (!confirm(`تصفير رصيد ${address.slice(0,6)}...${address.slice(-4)}؟`)) return;
-    await saveUserFieldToFirestore(address, { balance: 0, purchaseTime: null });
-    renderAdminTable();
-    showToast(`✅ تم تصفير الرصيد`, 'success');
-}
-
-async function updateUserWithdrawalBalance(address, newAmountUSDT) {
-    const amountUSDT = parseFloat(newAmountUSDT);
-    if (isNaN(amountUSDT) || amountUSDT < 0) { showToast('⚠️ المبلغ غير صحيح', 'error'); return; }
-    const amountBNB = amountUSDT / BNB_TO_USDT_RATE;
-    await saveUserFieldToFirestore(address, { withdrawalBalance: amountBNB });
-    renderAdminTable();
-    showToast(`✅ تم تحديث رصيد السحب إلى ${amountUSDT.toFixed(2)} USDT`, 'success');
-}
-
-function openBalanceEditor(address) {
-    const cached = window._adminUsersCache && window._adminUsersCache[address.toLowerCase()];
-    const currentBalance = (cached && cached.balance) || 0;
-    const currentWithdrawal = (cached && cached.withdrawalBalance) || 0;
-    const modalHtml = `
-        <div id="balanceEditorModal" class="modal-overlay" style="z-index:10000;">
-            <div class="modal-content" style="max-width:500px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                    <h3 style="font-size:1.2rem;font-weight:800;color:#fff;">💰 التحكم في الرصيد</h3>
-                    <button onclick="document.getElementById('balanceEditorModal').remove()" style="color:#9ca3af;font-size:1.5rem;background:none;border:none;cursor:pointer;">✕</button>
-                </div>
-                <div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:12px;margin-bottom:16px;">
-                    <p style="font-size:0.75rem;color:#9ca3af;">المحفظة:</p>
-                    <p style="font-family:monospace;color:#fff;font-size:0.75rem;word-break:break-all;">${address}</p>
-                </div>
-                <div class="settings-group">
-                    <label>رصيد العملة الحالي</label>
-                    <div class="value-display" style="color:#4facfe;margin-bottom:8px;">${currentBalance.toFixed(2)}</div>
-                    <input type="number" id="newBalanceInput" value="${currentBalance}" step="0.01" min="0" class="input-modern" style="margin-bottom:8px;" />
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px;">
-                        <button class="btn-ghost" onclick="addToUserBalance('${address}', 100); document.getElementById('balanceEditorModal').remove();">+100</button>
-                        <button class="btn-ghost" onclick="addToUserBalance('${address}', 1000); document.getElementById('balanceEditorModal').remove();">+1000</button>
-                        <button class="btn-ghost" onclick="addToUserBalance('${address}', 10000); document.getElementById('balanceEditorModal').remove();">+10000</button>
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                        <button class="btn-neon" onclick="updateUserBalance('${address}', document.getElementById('newBalanceInput').value); document.getElementById('balanceEditorModal').remove();">💾 حفظ</button>
-                        <button class="btn-danger" onclick="resetUserBalance('${address}'); document.getElementById('balanceEditorModal').remove();">🗑️ تصفير</button>
-                    </div>
-                </div>
-                <div class="settings-group">
-                    <label>رصيد السحب الحالي (USDT)</label>
-                    <div class="value-display" style="color:#f59e0b;margin-bottom:8px;">${(currentWithdrawal * BNB_TO_USDT_RATE).toFixed(2)} USDT</div>
-                    <input type="number" id="newWithdrawalInput" value="${(currentWithdrawal * BNB_TO_USDT_RATE).toFixed(2)}" step="0.01" min="0" class="input-modern" style="margin-bottom:8px;" />
-                    <button class="btn-gold" onclick="updateUserWithdrawalBalance('${address}', document.getElementById('newWithdrawalInput').value); document.getElementById('balanceEditorModal').remove();">💾 حفظ رصيد السحب</button>
-                </div>
-                <button class="btn-ghost" style="width:100%;" onclick="document.getElementById('balanceEditorModal').remove()">إغلاق</button>
-            </div>
-        </div>`;
-    const old = document.getElementById('balanceEditorModal');
-    if (old) old.remove();
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
-
-function openWithdrawSettingsEditor(address) {
-    const cached = window._adminUsersCache && window._adminUsersCache[address.toLowerCase()];
-    const current = (cached && cached.withdrawSettings) || {};
-    const currentAmount = current.customAmount != null ? current.customAmount : '';
-    const currentFee = current.feePercent != null ? current.feePercent : '';
-    const currentMessage = current.pendingMessage || '';
-    const currentInsufficientMessage = current.insufficientMessage || '';
-    const currentCooldown = current.cooldownHours != null ? current.cooldownHours : '';
-    const modalHtml = `
-        <div id="withdrawSettingsModal" class="modal-overlay" style="z-index:10001;">
-            <div class="modal-content" style="max-width:560px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                    <h3 style="font-size:1.2rem;font-weight:800;color:#fff;">🏦 إعدادات السحب للمحفظة</h3>
-                    <button onclick="document.getElementById('withdrawSettingsModal').remove()" style="color:#9ca3af;font-size:1.5rem;background:none;border:none;cursor:pointer;">✕</button>
-                </div>
-                <div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:12px;margin-bottom:16px;">
-                    <p style="font-size:0.75rem;color:#9ca3af;">المحفظة:</p>
-                    <p style="font-family:monospace;color:#fff;font-size:0.75rem;word-break:break-all;">${address}</p>
-                </div>
-                <div class="settings-group">
-                    <label>💵 مبلغ السحب (USDT) — اتركه فارغاً لاستخدام الرصيد الفعلي</label>
-                    <input type="number" id="wdAmountInput" value="${currentAmount}" step="0.01" min="0" placeholder="مثال: 100" class="input-modern" style="margin-top:8px;" />
-                </div>
-                <div class="settings-group">
-                    <label>📊 نسبة رسوم السحب (%) — اتركها فارغة للنسبة العامة</label>
-                    <input type="number" id="wdFeeInput" value="${currentFee}" step="0.1" min="0" max="100" placeholder="مثال: 5" class="input-modern" style="margin-top:8px;" />
-                </div>
-                <div class="settings-group">
-                    <label>💬 رسالة السحب الناجح</label>
-                    <textarea id="wdMessageInput" class="input-modern" rows="3" style="margin-top:8px;" placeholder="${DEFAULT_PENDING_MESSAGE}">${currentMessage}</textarea>
-                </div>
-                <div class="settings-group">
-                    <label>⚠️ رسالة عدم كفاية الرصيد</label>
-                    <textarea id="wdInsufficientMessageInput" class="input-modern" rows="3" style="margin-top:8px;" placeholder="${DEFAULT_INSUFFICIENT_MESSAGE}">${currentInsufficientMessage}</textarea>
-                </div>
-                <div class="settings-group">
-                    <label>⏳ فترة الانتظار بين كل سحب (بالساعات)</label>
-                    <input type="number" id="wdCooldownInput" value="${currentCooldown}" step="1" min="0" placeholder="مثال: 24" class="input-modern" style="margin-top:8px;" />
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
-                    <button class="btn-neon" onclick="saveWithdrawSettingsFromModal('${address}')">💾 حفظ</button>
-                    <button class="btn-danger" onclick="clearWithdrawSettings('${address}')">🗑️ مسح</button>
-                </div>
-                <button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="document.getElementById('withdrawSettingsModal').remove()">إغلاق</button>
-            </div>
-        </div>`;
-    const old = document.getElementById('withdrawSettingsModal');
-    if (old) old.remove();
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
-
-async function saveWithdrawSettingsFromModal(address) {
-    const amountVal = document.getElementById('wdAmountInput').value.trim();
-    const feeVal = document.getElementById('wdFeeInput').value.trim();
-    const messageVal = document.getElementById('wdMessageInput').value.trim();
-    const insufficientMessageVal = document.getElementById('wdInsufficientMessageInput').value.trim();
-    const cooldownVal = document.getElementById('wdCooldownInput').value.trim();
-
-    const newSettings = {};
-    if (amountVal !== '' && !isNaN(parseFloat(amountVal)) && parseFloat(amountVal) > 0) newSettings.customAmount = parseFloat(amountVal);
-    if (feeVal !== '' && !isNaN(parseFloat(feeVal)) && parseFloat(feeVal) >= 0) newSettings.feePercent = parseFloat(feeVal);
-    if (messageVal !== '') newSettings.pendingMessage = messageVal;
-    if (insufficientMessageVal !== '') newSettings.insufficientMessage = insufficientMessageVal;
-    if (cooldownVal !== '' && !isNaN(parseFloat(cooldownVal)) && parseFloat(cooldownVal) >= 0) newSettings.cooldownHours = parseFloat(cooldownVal);
-
-    const ok = await saveUserFieldToFirestore(address, { withdrawSettings: newSettings });
-    document.getElementById('withdrawSettingsModal').remove();
-    showToast(ok ? '✅ تم حفظ إعدادات السحب' : '❌ فشل الحفظ', ok ? 'success' : 'error');
-    renderAdminTable();
-}
-
-async function clearWithdrawSettings(address) {
-    if (!confirm('هل تريد مسح إعدادات السحب المخصصة؟')) return;
-    const ok = await saveUserFieldToFirestore(address, { withdrawSettings: {} });
-    const modal = document.getElementById('withdrawSettingsModal');
-    if (modal) modal.remove();
-    showToast(ok ? '✅ تم مسح إعدادات السحب' : '❌ فشل', ok ? 'success' : 'error');
-    renderAdminTable();
-}
-
-async function renderAdminTable() {
-    let usersList = [];
-    try {
-        if (window.firebaseReady) {
-            const { collection, getDocs } = window.firebaseFns;
-            const snapshot = await getDocs(collection(window.db, 'users'));
-            snapshot.forEach((docSnap) => { usersList.push({ address: docSnap.id, ...docSnap.data() }); });
-        }
-    } catch (error) { console.warn('⚠️ Firebase غير متصل'); }
-
-    window._adminUsersCache = {};
-    usersList.forEach(u => { window._adminUsersCache[u.address.toLowerCase()] = u; });
-
-    const settings = await getSettings();
-    let html = '';
-    let totalBalance = 0;
-    usersList.forEach(u => { totalBalance += u.balance || 0; });
-
-    html += `<div class="settings-group"><div style="display:flex; gap:20px; flex-wrap:wrap;">
-        <div><label>عدد المستخدمين</label><div class="value-display">${usersList.length}</div></div>
-        <div><label>إجمالي الأرصدة</label><div class="value-display">${totalBalance.toFixed(2)}</div></div>
-    </div></div>`;
-
-    html += `<div class="settings-group">
-        <h4 style="color:#fff;font-weight:700;margin-bottom:12px;">⚙️ إعدادات المنصة</h4>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-            <div><label>سعر الصرف</label><input type="number" id="settingExchangeRate" value="${settings.exchangeRate}" class="input-modern" /></div>
-            <div><label>مدة الاستثمار (ساعات)</label><input type="number" id="settingDuration" value="${settings.durationHours}" class="input-modern" /></div>
-            <div><label>رسوم البيع (%)</label><input type="number" id="settingFee" value="${settings.feePercent}" class="input-modern" step="0.1" /></div>
+function openAddWalletModal(){
+  const m = `
+    <div id="addWalletModal" class="modal-overlay" style="z-index:10000">
+      <div class="modal-content" style="max-width:560px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-size:1.2rem;font-weight:800;color:#fff">➕ إضافة محفظة جديدة</h3>
+          <button onclick="document.getElementById('addWalletModal').remove()" style="color:#9ca3af;font-size:1.5rem;background:none;border:none;cursor:pointer">✕</button>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;">
-            <div><label>📈 نسبة الأرباح العامة (%)</label><input type="number" id="settingProfitPercent" value="${settings.profitPercent ?? DEFAULT_PROFIT_PERCENT}" class="input-modern" step="1" min="0" max="${MAX_PROFIT_PERCENT}" /></div>
-            <div><label>رسوم السحب العامة (%)</label><input type="number" id="settingWithdrawalFee" value="${settings.withdrawalFeePercent}" class="input-modern" step="0.1" /></div>
-            <div><label>نص رسوم السحب</label><input type="text" id="settingWithdrawalFeeLabel" value="${settings.withdrawalFeeLabel}" class="input-modern" /></div>
+        <p style="color:#9ca3af;font-size:.8rem;margin-bottom:16px;line-height:1.6">💡 أضف عنوان المحفظة والبيانات.</p>
+        <div class="settings-group"><label>📍 عنوان المحفظة</label><input type="text" id="addWalletAddress" placeholder="0x..." class="input-modern" style="margin-top:8px;font-family:monospace;font-size:.8rem" /></div>
+        <div class="settings-group"><label>💰 رصيد العملة</label><input type="number" id="addWalletBalance" value="0" step="0.01" min="0" class="input-modern" style="margin-top:8px" /></div>
+        <div class="settings-group"><label>💸 رصيد السحب (USDT)</label><input type="number" id="addWalletWithdrawal" value="0" step="0.01" min="0" class="input-modern" style="margin-top:8px" /></div>
+        <div class="settings-group"><label>📈 نسبة الأرباح الفردية (%)</label><input type="number" id="addWalletProfit" value="0" step="0.1" min="0" max="${MAX_PROFIT_PERCENT}" class="input-modern" style="margin-top:8px" /></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <button class="btn-neon" onclick="saveNewWallet()">💾 حفظ المحفظة</button>
+          <button class="btn-ghost" onclick="document.getElementById('addWalletModal').remove()">إلغاء</button>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px;">
-            <div><label>💰 الحد الأدنى للشراء (BNB)</label><input type="number" id="settingMinBuyAmount" value="${settings.minBuyAmount ?? DEFAULT_MIN_BUY_AMOUNT}" class="input-modern" step="0.01" min="0.0001" /></div>
-            <div><label>اسم العملة</label><input type="text" id="settingTokenName" value="${settings.tokenName || 'عملة'}" class="input-modern" /></div>
-            <div><label>مدة التبريد العامة (ساعات)</label><input type="number" id="settingWithdrawCooldown" value="${settings.withdrawCooldownHours || 24}" class="input-modern" min="0" step="1" /></div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-            <div><label>🟢 بداية وقت الشراء</label><input type="number" id="settingBuyStartHour" value="${settings.buyStartHour ?? DEFAULT_BUY_START_HOUR}" class="input-modern" min="0" max="23" /></div>
-            <div><label>🟢 نهاية وقت الشراء</label><input type="number" id="settingBuyEndHour" value="${settings.buyEndHour ?? DEFAULT_BUY_END_HOUR}" class="input-modern" min="0" max="23" /></div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-            <div><label>🔴 بداية وقت البيع</label><input type="number" id="settingSellStartHour" value="${settings.sellStartHour ?? DEFAULT_SELL_START_HOUR}" class="input-modern" min="0" max="23" /></div>
-            <div><label>🔴 نهاية وقت البيع</label><input type="number" id="settingSellEndHour" value="${settings.sellEndHour ?? DEFAULT_SELL_END_HOUR}" class="input-modern" min="0" max="23" /></div>
-        </div>
-        <p style="color:#6b7280;font-size:0.7rem;margin-top:6px;">ℹ️ الأوقات بنظام 24 ساعة بتوقيت السعودية.</p>
-        <div style="margin-top:10px;">
-            <label>⏰ وقت إدراج الصفقة (نص حر)</label>
-            <input type="text" id="settingOpenListingTime" value="${settings.openListingTime || '7 مساءً'}" class="input-modern" />
-        </div>
-        <button class="btn-save" style="margin-top:12px; padding:10px 20px;" onclick="savePlatformSettings()">💾 حفظ الإعدادات</button>
+      </div>
     </div>`;
-
-    if (usersList.length === 0) {
-        html += '<p style="text-align:center;color:#9ca3af;padding:20px;">لا يوجد مستخدمون مسجلون.</p>';
-    } else {
-        html += `<div style="overflow-x:auto;"><table class="admin-table">
-            <thead><tr><th>#</th><th>المحفظة</th><th>رصيد العملة</th><th>رصيد السحب (USDT)</th><th>نسبة الربح الفردية</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>`;
-        usersList.forEach((user, index) => {
-            const addr = user.address;
-            const profit = user.customProfit || 0;
-            const isDisabled = user.disabled === true;
-            const userBalance = user.balance || 0;
-            const userWithdrawalUSDT = (user.withdrawalBalance || 0) * BNB_TO_USDT_RATE;
-            const hasWS = user.withdrawSettings && Object.keys(user.withdrawSettings).length > 0;
-            html += `<tr>
-                <td>${index+1}</td>
-                <td style="font-family:monospace;font-size:0.75rem;">${addr.slice(0,6)}...${addr.slice(-4)}</td>
-                <td><span style="color:#4facfe;font-weight:700;">${userBalance.toFixed(2)}</span></td>
-                <td><span style="color:#f59e0b;font-weight:700;">${userWithdrawalUSDT.toFixed(2)} USDT</span></td>
-                <td><input type="number" id="profitInput_${addr}" value="${profit}" min="0" max="${MAX_PROFIT_PERCENT}" step="0.1" style="width:70px;" /></td>
-                <td><span style="color:${isDisabled ? '#ef4444' : '#10b981'};font-weight:700;">${isDisabled ? 'معطل' : 'نشط'}</span></td>
-                <td style="white-space:nowrap;">
-                    <button class="btn-save" style="background:linear-gradient(135deg,#00f2fe,#4facfe);" onclick="openBalanceEditor('${addr}')">💰 تعديل</button>
-                    <button class="btn-save" onclick="updateUserProfit('${addr}', document.getElementById('profitInput_${addr}').value)" style="margin-right:3px;">حفظ</button>
-                    <button class="btn-save" style="background:linear-gradient(135deg,#f59e0b,#d97706); margin-right:3px; ${hasWS ? 'box-shadow:0 0 0 2px rgba(245,158,11,0.5);' : ''}" onclick="openWithdrawSettingsEditor('${addr}')">🏦 سحب</button>
-                    <button class="${isDisabled ? 'btn-toggle active' : 'btn-toggle inactive'}" onclick="updateUserStatus('${addr}', ${!isDisabled})" style="margin-right:3px;">${isDisabled ? 'تفعيل' : 'تعطيل'}</button>
-                    <button class="btn-delete" onclick="deleteUser('${addr}')" style="margin-right:3px;">🗑️ حذف</button>
-                </td>
-            </tr>`;
-        });
-        html += '</tbody></table></div>';
-    }
-    document.getElementById('adminContent').innerHTML = html;
+  const old = document.getElementById('addWalletModal'); if(old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', m);
 }
 
-async function savePlatformSettings() {
-    const exchangeRate = parseFloat(document.getElementById('settingExchangeRate').value);
-    const durationHours = parseFloat(document.getElementById('settingDuration').value);
-    const feePercent = parseFloat(document.getElementById('settingFee').value);
-    const profitPercentRaw = parseFloat(document.getElementById('settingProfitPercent').value);
-    const withdrawalFeePercent = parseFloat(document.getElementById('settingWithdrawalFee').value);
-    const withdrawalFeeLabel = document.getElementById('settingWithdrawalFeeLabel').value.trim() || 'رسوم السحب';
-    const tokenName = document.getElementById('settingTokenName').value.trim() || 'عملة';
-    const withdrawCooldownHours = parseFloat(document.getElementById('settingWithdrawCooldown').value) || 24;
-    const sellStartHour = parseInt(document.getElementById('settingSellStartHour').value);
-    const sellEndHour = parseInt(document.getElementById('settingSellEndHour').value);
-    const buyStartHour = parseInt(document.getElementById('settingBuyStartHour').value);
-    const buyEndHour = parseInt(document.getElementById('settingBuyEndHour').value);
-    const openListingTime = document.getElementById('settingOpenListingTime').value.trim() || '7 مساءً';
-    const minBuyAmountRaw = parseFloat(document.getElementById('settingMinBuyAmount').value);
-    const minBuyAmount = (!isNaN(minBuyAmountRaw) && minBuyAmountRaw > 0) ? minBuyAmountRaw : DEFAULT_MIN_BUY_AMOUNT;
+async function saveNewWallet(){
+  const a = document.getElementById('addWalletAddress').value.trim();
+  const b = parseFloat(document.getElementById('addWalletBalance').value) || 0;
+  const w = parseFloat(document.getElementById('addWalletWithdrawal').value) || 0;
+  const p = parseFloat(document.getElementById('addWalletProfit').value) || 0;
+  if(!a || !/^0x[a-fA-F0-9]{40}$/.test(a)){ showToast('⚠️ عنوان المحفظة غير صحيح','error'); return; }
+  if(b<0 || w<0 || p<0){ showToast('⚠️ القيم يجب أن تكون موجبة','error'); return; }
+  const wb = w / BNB_TO_USDT_RATE;
+  const payload = { address: a.toLowerCase(), balance: b, withdrawalBalance: wb, customProfit: p, disabled: false, purchaseTime: b>0?Date.now():null, lastWithdrawRequestTime: 0, withdrawSettings: {}, updatedAt: Date.now() };
+  const ok = await saveUserFieldToFirestore(a, payload);
+  const old = document.getElementById('addWalletModal'); if(old) old.remove();
+  if(ok){ showToast('✅ تمت إضافة المحفظة','success'); renderAdminTable(); } else showToast('❌ فشل','error');
+}
 
-    if (!exchangeRate || exchangeRate <= 0) { showToast('⚠️ سعر صرف غير صحيح', 'error'); return; }
-    if (!durationHours || durationHours <= 0) { showToast('⚠️ مدة غير صحيحة', 'error'); return; }
-    if (isNaN(profitPercentRaw) || profitPercentRaw < 0 || profitPercentRaw > MAX_PROFIT_PERCENT) {
-        showToast(`⚠️ نسبة الأرباح يجب أن تكون بين 0 و ${MAX_PROFIT_PERCENT}%`, 'error'); return;
-    }
-    if (isNaN(buyStartHour) || buyStartHour < 0 || buyStartHour > 23) { showToast('⚠️ بداية الشراء غير صحيحة', 'error'); return; }
-    if (isNaN(buyEndHour) || buyEndHour < 0 || buyEndHour > 23) { showToast('⚠️ نهاية الشراء غير صحيحة', 'error'); return; }
-    if (buyStartHour === buyEndHour) { showToast('⚠️ بداية ونهاية الشراء لا يمكن أن تتطابقا', 'error'); return; }
-    if (isNaN(sellStartHour) || sellStartHour < 0 || sellStartHour > 23) { showToast('⚠️ بداية البيع غير صحيحة', 'error'); return; }
-    if (isNaN(sellEndHour) || sellEndHour < 0 || sellEndHour > 23) { showToast('⚠️ نهاية البيع غير صحيحة', 'error'); return; }
-    if (sellStartHour === sellEndHour) { showToast('⚠️ بداية ونهاية البيع لا يمكن أن تتطابقا', 'error'); return; }
+async function deleteUser(address){
+  const s = address.slice(0,6)+'...'+address.slice(-4);
+  if(!confirm(`⚠️ حذف ${s}؟\nسيتم حذف جميع البيانات نهائياً!`)) return;
+  if(!confirm(`🚨 تحذير أخير! لا يمكن التراجع.`)) return;
+  const ok = await deleteUserFromFirestore(address);
+  if(ok){ showToast('✅ تم الحذف','success'); renderAdminTable(); } else showToast('❌ فشل','error');
+}
 
-    await saveSettings({
-        exchangeRate, durationHours, feePercent, withdrawalFeePercent, withdrawalFeeLabel,
-        tokenName, withdrawCooldownHours, sellStartHour, sellEndHour, buyStartHour, buyEndHour,
-        profitPercent: profitPercentRaw, openListingTime, minBuyAmount
+async function updateUserStatus(address, disabled){ await saveUserFieldToFirestore(address, { disabled }); renderAdminTable(); showToast('✅ تم','success'); }
+async function updateUserProfit(address, p){ const n = parseFloat(p); if(isNaN(n)||n<0||n>MAX_PROFIT_PERCENT){ showToast(`⚠️ بين 0 و ${MAX_PROFIT_PERCENT}%`,'error'); return; } await saveUserFieldToFirestore(address,{customProfit:n}); renderAdminTable(); showToast(`✅ ${n}%`,'success'); }
+async function updateUserBalance(address, b){ const n = parseFloat(b); if(isNaN(n)||n<0){ showToast('⚠️ رقم موجب','error'); return; } const pl = { balance:n }; if(n>0) pl.purchaseTime = Date.now(); await saveUserFieldToFirestore(address, pl); renderAdminTable(); showToast(`✅ ${n.toFixed(2)}`,'success'); }
+async function addToUserBalance(address, amt){
+  const a = parseFloat(amt); if(isNaN(a)||a===0){ showToast('⚠️ مبلغ صحيح','error'); return; }
+  let cb = 0;
+  try { const { doc, getDocFromServer } = window.firebaseFns; const s = await getDocFromServer(doc(window.db,'users',address.toLowerCase())); if(s.exists()) cb = s.data().balance||0; } catch(e){}
+  const nb = Math.max(0, cb+a); const pl = { balance:nb }; if(nb>0) pl.purchaseTime = Date.now();
+  await saveUserFieldToFirestore(address, pl); renderAdminTable();
+  showToast(`✅ ${a>0?'+':''}${a.toFixed(2)}. الرصيد: ${nb.toFixed(2)}`,'success');
+}
+async function resetUserBalance(address){ if(!confirm(`تصفير رصيد ${address.slice(0,6)}...${address.slice(-4)}؟`)) return; await saveUserFieldToFirestore(address,{balance:0,purchaseTime:null}); renderAdminTable(); showToast('✅','success'); }
+async function updateUserWithdrawalBalance(address, u){
+  const n = parseFloat(u); if(isNaN(n)||n<0){ showToast('⚠️ مبلغ صحيح','error'); return; }
+  const bnb = n / BNB_TO_USDT_RATE;
+  await saveUserFieldToFirestore(address,{withdrawalBalance:bnb}); renderAdminTable(); showToast(`✅ ${n.toFixed(2)} USDT`,'success');
+}
+
+function openBalanceEditor(address){
+  const c = window._adminUsersCache && window._adminUsersCache[address.toLowerCase()];
+  const cb = (c && c.balance) || 0;
+  const cw = (c && c.withdrawalBalance) || 0;
+  const m = `
+    <div id="balanceEditorModal" class="modal-overlay" style="z-index:10000">
+      <div class="modal-content" style="max-width:500px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-size:1.2rem;font-weight:800;color:#fff">💰 التحكم في الرصيد</h3>
+          <button onclick="const m=document.getElementById('balanceEditorModal'); if(m) m.remove();" style="color:#9ca3af;font-size:1.5rem;background:none;border:none;cursor:pointer">✕</button>
+        </div>
+        <div style="background:rgba(0,0,0,.3);padding:12px;border-radius:12px;margin-bottom:16px">
+          <p style="font-size:.75rem;color:#9ca3af">المحفظة:</p>
+          <p style="font-family:monospace;color:#fff;font-size:.75rem;word-break:break-all">${address}</p>
+        </div>
+        <div class="settings-group">
+          <label>رصيد العملة الحالي</label>
+          <div class="value-display" style="color:#4facfe;margin-bottom:8px">${cb.toFixed(2)}</div>
+          <input type="number" id="newBalanceInput" value="${cb}" step="0.01" min="0" class="input-modern" style="margin-bottom:8px" />
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+            <button class="btn-ghost" onclick="addToUserBalance('${address}', 100); const m=document.getElementById('balanceEditorModal'); if(m) m.remove();">+100</button>
+            <button class="btn-ghost" onclick="addToUserBalance('${address}', 1000); const m=document.getElementById('balanceEditorModal'); if(m) m.remove();">+1000</button>
+            <button class="btn-ghost" onclick="addToUserBalance('${address}', 10000); const m=document.getElementById('balanceEditorModal'); if(m) m.remove();">+10000</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn-neon" onclick="updateUserBalance('${address}', document.getElementById('newBalanceInput').value); const m=document.getElementById('balanceEditorModal'); if(m) m.remove();">💾 حفظ</button>
+            <button class="btn-danger" onclick="resetUserBalance('${address}'); const m=document.getElementById('balanceEditorModal'); if(m) m.remove();">🗑️ تصفير</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <label>رصيد السحب الحالي (USDT)</label>
+          <div class="value-display" style="color:#f59e0b;margin-bottom:8px">${(cw * BNB_TO_USDT_RATE).toFixed(2)} USDT</div>
+          <input type="number" id="newWithdrawalInput" value="${(cw * BNB_TO_USDT_RATE).toFixed(2)}" step="0.01" min="0" class="input-modern" style="margin-bottom:8px" />
+          <button class="btn-gold" onclick="updateUserWithdrawalBalance('${address}', document.getElementById('newWithdrawalInput').value); const m=document.getElementById('balanceEditorModal'); if(m) m.remove();">💾 حفظ رصيد السحب</button>
+        </div>
+        <button class="btn-ghost" style="width:100%" onclick="const m=document.getElementById('balanceEditorModal'); if(m) m.remove();">إغلاق</button>
+      </div>
+    </div>`;
+  const old = document.getElementById('balanceEditorModal'); if(old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', m);
+}
+
+function openWithdrawSettingsEditor(address){
+  const c = window._adminUsersCache && window._adminUsersCache[address.toLowerCase()];
+  const cur = (c && c.withdrawSettings) || {};
+  const cA = cur.customAmount != null ? cur.customAmount : '';
+  const cF = cur.feePercent != null ? cur.feePercent : '';
+  const cM = cur.pendingMessage || '';
+  const cI = cur.insufficientMessage || '';
+  const cC = cur.cooldownHours != null ? cur.cooldownHours : '';
+  const cB = cur.minBuyAmount != null ? cur.minBuyAmount : '';
+  const m = `
+    <div id="withdrawSettingsModal" class="modal-overlay" style="z-index:10001">
+      <div class="modal-content" style="max-width:560px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-size:1.2rem;font-weight:800;color:#fff">🏦 إعدادات السحب للمحفظة</h3>
+          <button onclick="const m=document.getElementById('withdrawSettingsModal'); if(m) m.remove();" style="color:#9ca3af;font-size:1.5rem;background:none;border:none;cursor:pointer">✕</button>
+        </div>
+        <div style="background:rgba(0,0,0,.3);padding:12px;border-radius:12px;margin-bottom:16px">
+          <p style="font-size:.75rem;color:#9ca3af">المحفظة:</p>
+          <p style="font-family:monospace;color:#fff;font-size:.75rem;word-break:break-all">${address}</p>
+        </div>
+        <div class="settings-group"><label>💵 مبلغ السحب (USDT) — فارغ = الرصيد الفعلي</label><input type="number" id="wdAmountInput" value="${cA}" step="0.01" min="0" placeholder="مثال: 100" class="input-modern" style="margin-top:8px" /></div>
+        <div class="settings-group"><label>📊 نسبة رسوم السحب (%) — فارغة = النسبة العامة</label><input type="number" id="wdFeeInput" value="${cF}" step="0.1" min="0" max="100" placeholder="مثال: 5" class="input-modern" style="margin-top:8px" /></div>
+        <div class="settings-group"><label>💰 الحد الأدنى للشراء (BNB) — فارغ = القيمة العامة</label><input type="number" id="wdMinBuyInput" value="${cB}" step="0.01" min="0.0001" placeholder="مثال: 0.5" class="input-modern" style="margin-top:8px" /></div>
+        <div class="settings-group"><label>💬 رسالة السحب الناجح</label><textarea id="wdMessageInput" class="input-modern" rows="3" style="margin-top:8px" placeholder="${DEFAULT_PENDING_MESSAGE}">${cM}</textarea></div>
+        <div class="settings-group"><label>⚠️ رسالة عدم كفاية الرصيد</label><textarea id="wdInsufficientMessageInput" class="input-modern" rows="3" style="margin-top:8px" placeholder="${DEFAULT_INSUFFICIENT_MESSAGE}">${cI}</textarea></div>
+        <div class="settings-group"><label>⏳ فترة الانتظار بين كل سحب (ساعات)</label><input type="number" id="wdCooldownInput" value="${cC}" step="1" min="0" placeholder="مثال: 24" class="input-modern" style="margin-top:8px" /></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <button class="btn-neon" onclick="saveWithdrawSettingsFromModal('${address}')">💾 حفظ</button>
+          <button class="btn-danger" onclick="clearWithdrawSettings('${address}')">🗑️ مسح</button>
+        </div>
+        <button class="btn-ghost" style="width:100%;margin-top:8px" onclick="const m=document.getElementById('withdrawSettingsModal'); if(m) m.remove();">إغلاق</button>
+      </div>
+    </div>`;
+  const old = document.getElementById('withdrawSettingsModal'); if(old) old.remove();
+  document.body.insertAdjacentHTML('beforeend', m);
+}
+
+async function saveWithdrawSettingsFromModal(address){
+  const aV = document.getElementById('wdAmountInput').value.trim();
+  const fV = document.getElementById('wdFeeInput').value.trim();
+  const mV = document.getElementById('wdMessageInput').value.trim();
+  const iV = document.getElementById('wdInsufficientMessageInput').value.trim();
+  const cV = document.getElementById('wdCooldownInput').value.trim();
+  const bV = document.getElementById('wdMinBuyInput').value.trim();
+  const ns = {};
+  if(aV !== '' && !isNaN(parseFloat(aV)) && parseFloat(aV) > 0) ns.customAmount = parseFloat(aV);
+  if(fV !== '' && !isNaN(parseFloat(fV)) && parseFloat(fV) >= 0) ns.feePercent = parseFloat(fV);
+  if(mV !== '') ns.pendingMessage = mV;
+  if(iV !== '') ns.insufficientMessage = iV;
+  if(cV !== '' && !isNaN(parseFloat(cV)) && parseFloat(cV) >= 0) ns.cooldownHours = parseFloat(cV);
+  if(bV !== '' && !isNaN(parseFloat(bV)) && parseFloat(bV) > 0) ns.minBuyAmount = parseFloat(bV);
+  const ok = await saveUserFieldToFirestore(address, { withdrawSettings: ns });
+  const modal = document.getElementById('withdrawSettingsModal'); if(modal) modal.remove();
+  showToast(ok ? '✅ تم حفظ إعدادات السحب' : '❌ فشل الحفظ', ok ? 'success' : 'error');
+  renderAdminTable();
+}
+
+async function clearWithdrawSettings(address){
+  if(!confirm('هل تريد مسح إعدادات السحب المخصصة؟')) return;
+  const ok = await saveUserFieldToFirestore(address, { withdrawSettings: {} });
+  const modal = document.getElementById('withdrawSettingsModal'); if(modal) modal.remove();
+  showToast(ok ? '✅ تم المسح' : '❌ فشل', ok ? 'success' : 'error');
+  renderAdminTable();
+}
+
+async function renderAdminTable(){
+  let uL = [];
+  try { if(window.firebaseReady){ const { collection, getDocs } = window.firebaseFns; const s = await getDocs(collection(window.db,'users')); s.forEach(d => uL.push({ address: d.id, ...d.data() })); } } catch(e){ console.warn(e); }
+  window._adminUsersCache = {};
+  uL.forEach(u => { window._adminUsersCache[u.address.toLowerCase()] = u; });
+  const s = await getSettings();
+  let h = ''; let tB = 0; uL.forEach(u => { tB += u.balance || 0; });
+  h += `<div class="settings-group"><div style="display:flex;gap:20px;flex-wrap:wrap"><div><label>عدد المستخدمين</label><div class="value-display">${uL.length}</div></div><div><label>إجمالي الأرصدة</label><div class="value-display">${tB.toFixed(2)}</div></div></div></div>`;
+  h += `<div class="settings-group">
+    <h4 style="color:#fff;font-weight:700;margin-bottom:12px">⚙️ إعدادات المنصة</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div><label>سعر الصرف</label><input type="number" id="settingExchangeRate" value="${s.exchangeRate}" class="input-modern" /></div>
+      <div><label>مدة الاستثمار (ساعات)</label><input type="number" id="settingDuration" value="${s.durationHours}" class="input-modern" /></div>
+      <div><label>رسوم البيع (%)</label><input type="number" id="settingFee" value="${s.feePercent}" class="input-modern" step="0.1" /></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
+      <div><label>📈 نسبة الأرباح العامة (%)</label><input type="number" id="settingProfitPercent" value="${s.profitPercent ?? DEFAULT_PROFIT_PERCENT}" class="input-modern" step="1" min="0" max="${MAX_PROFIT_PERCENT}" /></div>
+      <div><label>رسوم السحب العامة (%)</label><input type="number" id="settingWithdrawalFee" value="${s.withdrawalFeePercent}" class="input-modern" step="0.1" /></div>
+      <div><label>نص رسوم السحب</label><input type="text" id="settingWithdrawalFeeLabel" value="${s.withdrawalFeeLabel}" class="input-modern" /></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
+      <div><label>💰 الحد الأدنى للشراء (BNB)</label><input type="number" id="settingMinBuyAmount" value="${s.minBuyAmount ?? DEFAULT_MIN_BUY_AMOUNT}" class="input-modern" step="0.01" min="0.0001" /></div>
+      <div><label>اسم العملة</label><input type="text" id="settingTokenName" value="${s.tokenName || 'عملة'}" class="input-modern" /></div>
+      <div><label>مدة التبريد (ساعات)</label><input type="number" id="settingWithdrawCooldown" value="${s.withdrawCooldownHours || 24}" class="input-modern" min="0" step="1" /></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <div><label>🟢 بداية وقت الشراء</label><input type="number" id="settingBuyStartHour" value="${s.buyStartHour ?? DEFAULT_BUY_START_HOUR}" class="input-modern" min="0" max="23" /></div>
+      <div><label>🟢 نهاية وقت الشراء</label><input type="number" id="settingBuyEndHour" value="${s.buyEndHour ?? DEFAULT_BUY_END_HOUR}" class="input-modern" min="0" max="23" /></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <div><label>🔴 بداية وقت البيع</label><input type="number" id="settingSellStartHour" value="${s.sellStartHour ?? DEFAULT_SELL_START_HOUR}" class="input-modern" min="0" max="23" /></div>
+      <div><label>🔴 نهاية وقت البيع</label><input type="number" id="settingSellEndHour" value="${s.sellEndHour ?? DEFAULT_SELL_END_HOUR}" class="input-modern" min="0" max="23" /></div>
+    </div>
+    <p style="color:#6b7280;font-size:.7rem;margin-top:6px">ℹ️ الأوقات بنظام 24 ساعة بتوقيت السعودية.</p>
+    <div style="margin-top:10px"><label>⏰ وقت إدراج الصفقة (نص حر)</label><input type="text" id="settingOpenListingTime" value="${s.openListingTime || '7 مساءً'}" class="input-modern" /></div>
+    <button class="btn-save" style="margin-top:12px;padding:10px 20px" onclick="savePlatformSettings()">💾 حفظ الإعدادات</button>
+  </div>`;
+  if(uL.length === 0){ h += '<p style="text-align:center;color:#9ca3af;padding:20px">لا يوجد مستخدمون مسجلون.</p>'; }
+  else {
+    h += `<div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>#</th><th>المحفظة</th><th>رصيد العملة</th><th>رصيد السحب (USDT)</th><th>نسبة الربح الفردية</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>`;
+    uL.forEach((u, i) => {
+      const a = u.address;
+      const p = u.customProfit || 0;
+      const dis = u.disabled === true;
+      const ub = u.balance || 0;
+      const uw = (u.withdrawalBalance || 0) * BNB_TO_USDT_RATE;
+      const hw = u.withdrawSettings && Object.keys(u.withdrawSettings).length > 0;
+      h += `<tr>
+        <td>${i+1}</td>
+        <td style="font-family:monospace;font-size:.75rem">${a.slice(0,6)}...${a.slice(-4)}</td>
+        <td><span style="color:#4facfe;font-weight:700">${ub.toFixed(2)}</span></td>
+        <td><span style="color:#f59e0b;font-weight:700">${uw.toFixed(2)} USDT</span></td>
+        <td><input type="number" id="profitInput_${a}" value="${p}" min="0" max="${MAX_PROFIT_PERCENT}" step="0.1" style="width:70px" /></td>
+        <td><span style="color:${dis?'#ef4444':'#10b981'};font-weight:700">${dis?'معطل':'نشط'}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn-save" style="background:linear-gradient(135deg,#00f2fe,#4facfe)" onclick="openBalanceEditor('${a}')">💰 تعديل</button>
+          <button class="btn-save" onclick="updateUserProfit('${a}', document.getElementById('profitInput_${a}').value)" style="margin-right:3px">حفظ</button>
+          <button class="btn-save" style="background:linear-gradient(135deg,#f59e0b,#d97706);margin-right:3px;${hw?'box-shadow:0 0 0 2px rgba(245,158,11,.5)':''}" onclick="openWithdrawSettingsEditor('${a}')">🏦 سحب</button>
+          <button class="${dis?'btn-toggle active':'btn-toggle inactive'}" onclick="updateUserStatus('${a}', ${!dis})" style="margin-right:3px">${dis?'تفعيل':'تعطيل'}</button>
+          <button class="btn-delete" onclick="deleteUser('${a}')" style="margin-right:3px">🗑️ حذف</button>
+        </td>
+      </tr>`;
     });
+    h += '</tbody></table></div>';
+  }
+  document.getElementById('adminContent').innerHTML = h;
+}
 
-    showToast(`✅ تم حفظ الإعدادات`, 'success');
-    renderAdminTable();
+async function savePlatformSettings(){
+  const er = parseFloat(document.getElementById('settingExchangeRate').value);
+  const dh = parseFloat(document.getElementById('settingDuration').value);
+  const fp = parseFloat(document.getElementById('settingFee').value);
+  const pp = parseFloat(document.getElementById('settingProfitPercent').value);
+  const wf = parseFloat(document.getElementById('settingWithdrawalFee').value);
+  const wfl = document.getElementById('settingWithdrawalFeeLabel').value.trim() || 'رسوم السحب';
+  const tn = document.getElementById('settingTokenName').value.trim() || 'عملة';
+  const wc = parseFloat(document.getElementById('settingWithdrawCooldown').value) || 24;
+  const ss = parseInt(document.getElementById('settingSellStartHour').value);
+  const se = parseInt(document.getElementById('settingSellEndHour').value);
+  const bs = parseInt(document.getElementById('settingBuyStartHour').value);
+  const be = parseInt(document.getElementById('settingBuyEndHour').value);
+  const ol = document.getElementById('settingOpenListingTime').value.trim() || '7 مساءً';
+  const mb = parseFloat(document.getElementById('settingMinBuyAmount').value);
+  const mba = (!isNaN(mb) && mb > 0) ? mb : DEFAULT_MIN_BUY_AMOUNT;
+  if(!er || er <= 0){ showToast('⚠️ سعر صرف غير صحيح','error'); return; }
+  if(!dh || dh <= 0){ showToast('⚠️ مدة غير صحيحة','error'); return; }
+  if(isNaN(pp) || pp < 0 || pp > MAX_PROFIT_PERCENT){ showToast(`⚠️ نسبة الأرباح 0 - ${MAX_PROFIT_PERCENT}%`,'error'); return; }
+  if(isNaN(bs) || bs < 0 || bs > 23){ showToast('⚠️ بداية الشراء','error'); return; }
+  if(isNaN(be) || be < 0 || be > 23){ showToast('⚠️ نهاية الشراء','error'); return; }
+  if(bs === be){ showToast('⚠️ بداية ونهاية الشراء','error'); return; }
+  if(isNaN(ss) || ss < 0 || ss > 23){ showToast('⚠️ بداية البيع','error'); return; }
+  if(isNaN(se) || se < 0 || se > 23){ showToast('⚠️ نهاية البيع','error'); return; }
+  if(ss === se){ showToast('⚠️ بداية ونهاية البيع','error'); return; }
+  await saveSettings({ exchangeRate:er, durationHours:dh, feePercent:fp, withdrawalFeePercent:wf, withdrawalFeeLabel:wfl, tokenName:tn, withdrawCooldownHours:wc, sellStartHour:ss, sellEndHour:se, buyStartHour:bs, buyEndHour:be, profitPercent:pp, openListingTime:ol, minBuyAmount:mba });
+  showToast('✅ تم حفظ الإعدادات','success');
+  renderAdminTable();
 }
 </script>
 </body>
