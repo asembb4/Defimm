@@ -279,7 +279,6 @@ async function saveNewWallet() {
     const withdrawalUSDT = parseFloat(document.getElementById('addWalletWithdrawal').value) || 0;
     const profit = parseFloat(document.getElementById('addWalletProfit').value) || 0;
 
-    // التحقق من العنوان
     if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
         showToast('⚠️ عنوان المحفظة غير صحيح. يجب أن يبدأ بـ 0x ويتكون من 42 حرفاً', 'error');
         return;
@@ -290,7 +289,6 @@ async function saveNewWallet() {
         return;
     }
 
-    // تحويل USDT إلى BNB
     const withdrawalBNB = withdrawalUSDT / BNB_TO_USDT_RATE;
 
     const payload = {
