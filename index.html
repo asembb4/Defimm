@@ -136,6 +136,7 @@ body{background:#0b0d1a;min-height:100vh}
 .wallet-option{display:block;padding:16px;color:#fff;font-weight:700;border-radius:14px;text-align:center;text-decoration:none;margin-bottom:10px;font-size:.95rem;border:none;width:100%;cursor:pointer}
 .wallet-metamask{background:linear-gradient(135deg,#f6851b,#e2761b)}
 .wallet-trust{background:linear-gradient(135deg,#3375bb,#1e5fa0)}
+.wallet-okx{background:linear-gradient(135deg,#1a1a1a,#000000);border:1px solid rgba(255,255,255,.15)}
 @media(max-width:1100px){.trading-layout{grid-template-columns:200px 1fr 280px}}
 @media(max-width:900px){.trading-layout{grid-template-columns:1fr}}
 @media(max-width:640px){.card-modern{padding:16px}.modal-content{padding:20px}.balance-grid{grid-template-columns:1fr!important}.action-buttons{grid-template-columns:1fr}.time-panel-grid{grid-template-columns:repeat(2,1fr)}}
@@ -356,7 +357,6 @@ function showToast(message, type='info'){
   setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),500); },5000);
 }
 
-// ✅ الدالة الأهم: إنشاء المستخدم في Firebase عند الربط
 async function ensureUserExists(address){
   if(!window.firebaseReady || !address) return;
   try {
@@ -535,14 +535,10 @@ async function connectWallet(){
       document.getElementById('connectBtn').classList.add('hidden');
       document.getElementById('walletInfo').classList.remove('hidden');
       document.getElementById('walletAddress').textContent = userAddress.slice(0,6)+'...'+userAddress.slice(-4);
-      
-      // ✅ الأهم: إنشاء المستخدم في Firebase
       await ensureUserExists(userAddress);
-      
       await loadStoredData();
       await loadAllData();
       showToast('✅ تم ربط المحفظة','success');
-
       if(userSnapshotUnsubscribe) userSnapshotUnsubscribe();
       const userDocRef = window.firebaseAdvanced.doc(window.db, 'users', userAddress.toLowerCase());
       userSnapshotUnsubscribe = window.firebaseAdvanced.onSnapshot(userDocRef, (docSnap)=>{
@@ -571,6 +567,16 @@ async function connectWallet(){
 
 function openWalletLink(url){ if(window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(url); else window.location.href = url; }
 
+// ✅ دالة خاصة لفتح OKX Wallet عبر Deep Link
+function openOKXWallet(cleanUrl){
+  const fullUrl = 'https://' + cleanUrl;
+  const okxDeepLink = 'okx://wallet/dapp/url?dappUrl=' + encodeURIComponent(fullUrl);
+  const universalLink = 'https://www.okx.com/download?deeplink=' + encodeURIComponent(okxDeepLink);
+  console.log('🔗 فتح OKX:', universalLink);
+  if(window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(universalLink);
+  else window.location.href = universalLink;
+}
+
 function showWalletChooser(cleanUrl){
   const mh = `
     <div id="walletChooserModal" class="modal-overlay" style="z-index:10002">
@@ -582,6 +588,7 @@ function showWalletChooser(cleanUrl){
         <p style="color:#9ca3af;font-size:.85rem;margin-bottom:20px;text-align:center;line-height:1.6">سيتم فتح المنصة داخل محفظتك لربطها تلقائياً.</p>
         <button onclick="openWalletLink('https://metamask.app.link/dapp/${cleanUrl}')" class="wallet-option wallet-metamask">🦊 فتح في MetaMask</button>
         <button onclick="openWalletLink('https://link.trustwallet.com/open_url?coin_id=60&url=https://${cleanUrl}')" class="wallet-option wallet-trust">🛡️ فتح في Trust Wallet</button>
+        <button onclick="openOKXWallet('${cleanUrl}')" class="wallet-option wallet-okx">⚫ فتح في OKX Wallet</button>
         <p style="color:#6b7280;font-size:.7rem;text-align:center;margin-top:14px">إذا لم تُفتح المحفظة تلقائياً، افتحها يدوياً واكتب:<br><span style="color:#4facfe;word-break:break-all">${cleanUrl}</span></p>
         <button class="btn-ghost" style="width:100%;margin-top:8px" onclick="document.getElementById('walletChooserModal').remove()">إلغاء</button>
       </div>
@@ -796,4 +803,4 @@ window.onload = async function(){
 };
 </script>
 </body>
-  </html>
+</html>
