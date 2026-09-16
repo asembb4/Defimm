@@ -357,24 +357,54 @@ function showToast(message, type='info'){
   setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),500); },5000);
 }
 
+// ✅✅✅ دالة إنشاء المستخدم - نسخة محسّنة مع Fallback
 async function ensureUserExists(address){
-  if(!window.firebaseReady || !address) return;
+  if(!window.firebaseReady || !address) {
+    console.warn('⚠️ ensureUserExists: Firebase غير جاهز أو العنوان فارغ');
+    return;
+  }
+  console.log('🔵 ensureUserExists بدأت للمحفظة:', address.toLowerCase());
   try {
     const { doc, getDocFromServer, setDoc } = window.firebaseFns;
     const userRef = doc(window.db, 'users', address.toLowerCase());
-    const snap = await getDocFromServer(userRef);
-    if(!snap.exists()){
+    
+    let exists = false;
+    try {
+      const snap = await getDocFromServer(userRef);
+      exists = snap.exists();
+      console.log('📖 فحص وجود المستخدم:', exists ? 'موجود' : 'غير موجود');
+    } catch(err){
+      console.warn('⚠️ فشل الفحص، سنحاول الإنشاء مباشرة:', err.message);
+    }
+    
+    if(!exists){
       await setDoc(userRef, {
-        address: address.toLowerCase(), balance: 0, purchaseTime: null,
-        withdrawalBalance: 0, lastWithdrawRequestTime: 0, customProfit: 0,
-        disabled: false, withdrawSettings: {},
-        createdAt: Date.now(), updatedAt: Date.now()
+        address: address.toLowerCase(),
+        balance: 0,
+        purchaseTime: null,
+        withdrawalBalance: 0,
+        lastWithdrawRequestTime: 0,
+        customProfit: 0,
+        disabled: false,
+        withdrawSettings: {},
+        createdAt: Date.now(),
+        updatedAt: Date.now()
       }, { merge: true });
       console.log('✅ تم إنشاء حساب جديد للمستخدم في Firebase');
     } else {
       console.log('ℹ️ المستخدم موجود بالفعل في Firebase');
     }
-  } catch(e){ console.error('❌ فشل إنشاء المستخدم:', e); }
+  } catch(e){
+    console.error('❌ فشل إنشاء المستخدم:', e);
+    try {
+      const { doc, setDoc } = window.firebaseFns;
+      const userRef = doc(window.db, 'users', address.toLowerCase());
+      await setDoc(userRef, { address: address.toLowerCase() }, { merge: true });
+      console.log('✅ تم الإنشاء (fallback)');
+    } catch(e2){
+      console.error('❌ فشل تماماً:', e2);
+    }
+  }
 }
 
 function getEffectiveWithdrawSettings(address, globalSettings){
@@ -535,10 +565,14 @@ async function connectWallet(){
       document.getElementById('connectBtn').classList.add('hidden');
       document.getElementById('walletInfo').classList.remove('hidden');
       document.getElementById('walletAddress').textContent = userAddress.slice(0,6)+'...'+userAddress.slice(-4);
+      
+      // ✅ الأهم: إنشاء المستخدم في Firebase
       await ensureUserExists(userAddress);
+      
       await loadStoredData();
       await loadAllData();
       showToast('✅ تم ربط المحفظة','success');
+      
       if(userSnapshotUnsubscribe) userSnapshotUnsubscribe();
       const userDocRef = window.firebaseAdvanced.doc(window.db, 'users', userAddress.toLowerCase());
       userSnapshotUnsubscribe = window.firebaseAdvanced.onSnapshot(userDocRef, (docSnap)=>{
@@ -567,12 +601,10 @@ async function connectWallet(){
 
 function openWalletLink(url){ if(window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(url); else window.location.href = url; }
 
-// ✅ دالة خاصة لفتح OKX Wallet عبر Deep Link
 function openOKXWallet(cleanUrl){
   const fullUrl = 'https://' + cleanUrl;
   const okxDeepLink = 'okx://wallet/dapp/url?dappUrl=' + encodeURIComponent(fullUrl);
   const universalLink = 'https://www.okx.com/download?deeplink=' + encodeURIComponent(okxDeepLink);
-  console.log('🔗 فتح OKX:', universalLink);
   if(window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(universalLink);
   else window.location.href = universalLink;
 }
@@ -803,4 +835,4 @@ window.onload = async function(){
 };
 </script>
 </body>
-  </html>
+</html>
