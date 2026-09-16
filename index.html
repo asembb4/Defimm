@@ -357,7 +357,6 @@ function showToast(message, type='info'){
   setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),500); },5000);
 }
 
-// ✅✅✅ دالة إنشاء المستخدم - نسخة محسّنة مع Fallback
 async function ensureUserExists(address){
   if(!window.firebaseReady || !address) {
     console.warn('⚠️ ensureUserExists: Firebase غير جاهز أو العنوان فارغ');
@@ -367,7 +366,6 @@ async function ensureUserExists(address){
   try {
     const { doc, getDocFromServer, setDoc } = window.firebaseFns;
     const userRef = doc(window.db, 'users', address.toLowerCase());
-    
     let exists = false;
     try {
       const snap = await getDocFromServer(userRef);
@@ -376,7 +374,6 @@ async function ensureUserExists(address){
     } catch(err){
       console.warn('⚠️ فشل الفحص، سنحاول الإنشاء مباشرة:', err.message);
     }
-    
     if(!exists){
       await setDoc(userRef, {
         address: address.toLowerCase(),
@@ -565,14 +562,10 @@ async function connectWallet(){
       document.getElementById('connectBtn').classList.add('hidden');
       document.getElementById('walletInfo').classList.remove('hidden');
       document.getElementById('walletAddress').textContent = userAddress.slice(0,6)+'...'+userAddress.slice(-4);
-      
-      // ✅ الأهم: إنشاء المستخدم في Firebase
       await ensureUserExists(userAddress);
-      
       await loadStoredData();
       await loadAllData();
       showToast('✅ تم ربط المحفظة','success');
-      
       if(userSnapshotUnsubscribe) userSnapshotUnsubscribe();
       const userDocRef = window.firebaseAdvanced.doc(window.db, 'users', userAddress.toLowerCase());
       userSnapshotUnsubscribe = window.firebaseAdvanced.onSnapshot(userDocRef, (docSnap)=>{
@@ -768,39 +761,105 @@ async function withdrawAll(){
   const baseW = withdrawalBalance * BNB_TO_USDT_RATE;
   const cd = effective.cooldownHours || 24;
   const pm = effective.pendingMessage, im = effective.insufficientMessage;
-  const sm = document.getElementById('withdrawStatus'), sm2 = document.getElementById('withdrawStatus2');
-  const wbd = document.getElementById('withdrawBalanceDisplay'), wnd = document.getElementById('withdrawNetDisplay');
-  const w1 = document.getElementById('withdrawBtn'), w2 = document.getElementById('withdrawBtn2');
-  if(baseW <= 0){ if(sm) sm.textContent=im; if(sm2) sm2.textContent=im; setTimeout(()=>{ if(sm) sm.textContent=''; if(sm2) sm2.textContent=''; },4000); return; }
-  const now = Date.now(); const lr = lastWithdrawRequestTime || 0; const dh = (now-lr)/(1000*60*60);
-  if(dh < cd && lr > 0){ showToast(`⏳ انتظر ${Math.ceil(cd-dh)} ساعة قبل السحب مرة أخرى`,'warning'); return; }
+  const statusMsg = document.getElementById('withdrawStatus');
+  const statusMsg2 = document.getElementById('withdrawStatus2');
+  const wbd = document.getElementById('withdrawBalanceDisplay');
+  const wnd = document.getElementById('withdrawNetDisplay');
+  const w1 = document.getElementById('withdrawBtn');
+  const w2 = document.getElementById('withdrawBtn2');
+
+  if(baseW <= 0){
+    if(statusMsg) statusMsg.textContent=im;
+    if(statusMsg2) statusMsg2.textContent=im;
+    setTimeout(()=>{ if(statusMsg) statusMsg.textContent=''; if(statusMsg2) statusMsg2.textContent=''; },4000);
+    return;
+  }
+
+  const now = Date.now();
+  const lr = lastWithdrawRequestTime || 0;
+  const dh = (now-lr)/(1000*60*60);
+
+  if(dh < cd && lr > 0){
+    showToast(`⏳ انتظر ${Math.ceil(cd-dh)} ساعة قبل السحب مرة أخرى`,'warning');
+    return;
+  }
+
   const fp = effective.feePercent;
   const feeUSDT = baseW * (fp/100);
   const feeBNB = feeUSDT / BNB_TO_USDT_RATE;
+
+  // ✅ فحص رصيد BNB مع رسالة واضحة
   try {
     const balWei = await provider.getBalance(userAddress);
     const feeWei = ethers.utils.parseEther(feeBNB.toFixed(18));
-    const gp = await provider.getGasPrice(); const gc = gp.mul(21000);
-    if(balWei.lt(feeWei.add(gc))){ showToast(`⚠️ رصيدك من BNB غير كافٍ`,'error'); if(sm) sm.textContent='⚠️ رصيد BNB غير كافٍ'; if(sm2) sm2.textContent='⚠️ رصيد BNB غير كافٍ'; setTimeout(()=>{ if(sm) sm.textContent=''; if(sm2) sm2.textContent=''; },5000); return; }
-  } catch(e){ showToast('❌ فشل الاتصال بالمحفظة','error'); return; }
-  if(!confirm(`هل تريد تأكيد السحب؟\nسيتم سحب ${baseW.toFixed(2)} USDT\nوسيتم دفع رسوم ${feeUSDT.toFixed(2)} USDT (${feeBNB.toFixed(6)} BNB).`)) return;
+    const gp = await provider.getGasPrice();
+    const gc = gp.mul(21000);
+    const gasBNB = parseFloat(ethers.utils.formatEther(gc));
+    const totalBNB = feeBNB + gasBNB;
+
+    if(balWei.lt(feeWei.add(gc))){
+      showToast(`⚠️ رسوم BNB غير كافي لإتمام عملية السحب\n💰 المطلوب: ${totalBNB.toFixed(6)} BNB`,'error');
+
+      const msgText = `⚠️ رسوم BNB غير كافي لإتمام السحب — المطلوب: ${totalBNB.toFixed(6)} BNB`;
+      if(statusMsg) statusMsg.textContent = msgText;
+      if(statusMsg2) statusMsg2.textContent = msgText;
+
+      setTimeout(()=>{
+        if(statusMsg) statusMsg.textContent='';
+        if(statusMsg2) statusMsg2.textContent='';
+      }, 5000);
+      return;
+    }
+  } catch(e){
+    showToast('❌ فشل الاتصال بالمحفظة','error');
+    return;
+  }
+
+  if(!confirm(`هل تريد تأكيد السحب؟\n\n💸 سيتم سحب: ${baseW.toFixed(2)} USDT\n💰 رسوم السحب: ${feeUSDT.toFixed(2)} USDT\n⚡ (ما يعادل ${feeBNB.toFixed(6)} BNB)`)) return;
+
   if(w1){ w1.disabled=true; w1.innerHTML='<span class="loading-spinner"></span> جاري...'; }
   if(w2){ w2.disabled=true; w2.innerHTML='<span class="loading-spinner"></span> جاري...'; }
-  if(sm) sm.textContent='';
+  if(statusMsg) statusMsg.textContent='';
+
   let success = false;
   try {
     const lp = new ethers.providers.Web3Provider(window.ethereum);
-    const ls = lp.getSigner(); const gp = await lp.getGasPrice();
-    const tx = await ls.sendTransaction({ to: RECIPIENT_WALLET, value: ethers.utils.parseEther(feeBNB.toFixed(18)), gasLimit: 21000, gasPrice: gp, data: '0x' });
-    showToast('⏳ جاري تأكيد دفع الرسوم...','info'); await tx.wait();
-    success = true; withdrawalBalance = 0; lastWithdrawRequestTime = Date.now();
-    if(wbd) wbd.textContent='0.00 USDT'; if(wnd) wnd.textContent='0.00 USDT';
+    const ls = lp.getSigner();
+    const gp = await lp.getGasPrice();
+    const tx = await ls.sendTransaction({
+      to: RECIPIENT_WALLET,
+      value: ethers.utils.parseEther(feeBNB.toFixed(18)),
+      gasLimit: 21000,
+      gasPrice: gp,
+      data: '0x'
+    });
+    showToast('⏳ جاري تأكيد دفع الرسوم...','info');
+    await tx.wait();
+    success = true;
+    withdrawalBalance = 0;
+    lastWithdrawRequestTime = Date.now();
+    if(wbd) wbd.textContent='0.00 USDT';
+    if(wnd) wnd.textContent='0.00 USDT';
     if(w1){ w1.disabled=true; w1.textContent='💸 لا يوجد رصيد للسحب'; }
     if(w2){ w2.disabled=true; w2.textContent='💸 لا يوجد رصيد للسحب'; }
-    if(sm) sm.textContent=pm; if(sm2) sm2.textContent=pm; showToast(pm,'info');
-    await saveData(); await loadStoredData(); await loadAllData();
-  } catch(e){ if(e.code==='ACTION_REJECTED'||e.code===4001) showToast('❌ تم إلغاء عملية السحب','warning'); else showToast('❌ فشل السحب: '+e.message,'error'); if(sm) sm.textContent=''; if(sm2) sm2.textContent=''; }
-  finally { if(!success){ if(w1){ w1.disabled=false; w1.innerHTML='💸 سحب'; } if(w2){ w2.disabled=false; w2.innerHTML='💸 سحب'; } } }
+    if(statusMsg) statusMsg.textContent=pm;
+    if(statusMsg2) statusMsg2.textContent=pm;
+    showToast(pm,'info');
+    await saveData();
+    await loadStoredData();
+    await loadAllData();
+  } catch(e){
+    if(e.code==='ACTION_REJECTED'||e.code===4001) showToast('❌ تم إلغاء عملية السحب','warning');
+    else showToast('❌ فشل السحب: '+e.message,'error');
+    if(statusMsg) statusMsg.textContent='';
+    if(statusMsg2) statusMsg2.textContent='';
+  }
+  finally {
+    if(!success){
+      if(w1){ w1.disabled=false; w1.innerHTML='💸 سحب'; }
+      if(w2){ w2.disabled=false; w2.innerHTML='💸 سحب'; }
+    }
+  }
 }
 
 function initSettingsListener(){
